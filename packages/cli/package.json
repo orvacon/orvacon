@@ -1,0 +1,42 @@
+{
+  "name": "@orvacon/cli",
+  "version": "0.0.1",
+  "description": "orvacon CLI — provider-agnostic, TypeScript-first payment orchestration. Placeholder release.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "orvacon": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "dev": "bun run ./src/index.ts",
+    "prepublishOnly": "bun run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orvacon/orvacon.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://orvacon.com",
+  "keywords": [
+    "orvacon",
+    "payments",
+    "payment-orchestration",
+    "iyzico",
+    "paytr",
+    "typescript"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "5.9.2"
+  }
+}
