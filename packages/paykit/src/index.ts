@@ -21,6 +21,7 @@ export type {
   SetupResult,
 } from "./connector";
 export { isRetryableError } from "./connector";
+export * from "./database";
 export * from "./ids";
 export * from "./money";
 export * from "./orvacon";
