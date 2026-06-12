@@ -25,4 +25,5 @@ export * from "./database";
 export * from "./ids";
 export * from "./money";
 export * from "./orvacon";
+export { type ConnectorId, type ConnectorRegistry, connectorId } from "./registry";
 export * from "./state";

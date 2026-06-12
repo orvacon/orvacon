@@ -52,7 +52,8 @@ export type NextStatus<S extends PaymentStatus> = AllowedTransitions[S];
 
 /** True when `from → to` is a permitted transition. */
 export function canTransition(from: PaymentStatus, to: PaymentStatus): boolean {
-  return (transitions[from] as readonly PaymentStatus[]).includes(to);
+  const allowed: readonly PaymentStatus[] = transitions[from];
+  return allowed.includes(to);
 }
 
 /**

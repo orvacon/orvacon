@@ -109,10 +109,28 @@ export interface DatabaseAdapter {
   getIdempotencyKey(key: IdempotencyKey): Promise<IdempotencyRecord | null>;
 
   /**
+   * Atomically take over a stale claim: refresh the claim window only when the
+   * key is still `in_progress` AND its `expiresAt` has passed — `UPDATE … WHERE
+   * key = ? AND status = 'in_progress' AND expires_at < now()`. Returns `true`
+   * when this caller won the takeover; two concurrent reclaimers must yield
+   * exactly one `true` (the row's compare-and-swap resolves the race, the same
+   * discipline as {@link updatePaymentStatus}).
+   */
+  reclaimIdempotencyKey(key: IdempotencyKey, expiresAt: string): Promise<boolean>;
+
+  /**
    * Mark a claimed key `completed` and store the outcome that future replays
    * of the same key will return.
    */
   completeIdempotencyKey(key: IdempotencyKey, paymentId: PaymentId, result: unknown): Promise<void>;
+
+  /**
+   * The last ledger entry in chain order, or `null` on an empty ledger. The
+   * core reads this to compute the next entry's `prevHash`; call it inside the
+   * same {@link transaction} as the `appendLedger` that extends the chain, so
+   * two concurrent appends cannot both chain onto the same head.
+   */
+  getLedgerHead(): Promise<LedgerEntry | null>;
 
   /**
    * Append ledger rows. Append-only: the adapter must never update or delete

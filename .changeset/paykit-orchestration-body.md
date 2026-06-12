@@ -1,0 +1,5 @@
+---
+"@orvacon/paykit": minor
+---
+
+Implement the `orvacon()` orchestration body. `authorize` / `capture` / `refund` now run the full flow: capability gates before the gateway (partial capture/refund, 3DS support, amount/currency checks), client-keyed idempotency (claim → replay completed results, conflict on in-flight keys, atomic takeover of stale claims), connector call with injected `AbortSignal` timeout, compare-and-swap state persistence with the hash-chained double-entry ledger written in the same transaction, and event-keyed hooks. `handleWebhook` parses and verifies through the connector, deduplicates redeliveries, and applies refund deltas cumulatively (`partially_refunded` vs `refunded`). Payment ids are core-generated prefixed ULIDs (`pay_…`); app-facing requests (`AuthorizeRequest`, `CaptureRequest`, `RefundRequest`) replace raw connector inputs and return `OperationOutcome` / `WebhookOutcome`. Adds `conflict` to the normalized error classes, registry-validated `ConnectorId`, and two `DatabaseAdapter` methods (`reclaimIdempotencyKey`, `getLedgerHead`). Outgoing Ed25519 webhook delivery ships next with cryptokit.
