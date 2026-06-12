@@ -36,6 +36,9 @@ export type ConnectorCapabilities = {
  *   candidate (exponential backoff + jitter).
  * - `invalid_request` — our request was malformed. A bug; never retried.
  * - `auth_error` — connector credentials invalid. Configuration; never retried.
+ * - `conflict` — another request holding the same idempotency key is still in
+ *   progress. Minted by the core, never by a connector; safe to retry after
+ *   the in-flight request settles, but never auto-retried.
  * - `unknown` — unclassifiable, outcome ambiguous. Deliberately NOT auto-retried
  *   (a blind retry risks a double charge); surfaced for reconciliation.
  */
@@ -44,6 +47,7 @@ export type ConnectorErrorCode =
   | "gateway_error"
   | "invalid_request"
   | "auth_error"
+  | "conflict"
   | "unknown";
 
 /**

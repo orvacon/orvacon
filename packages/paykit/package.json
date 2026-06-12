@@ -12,13 +12,15 @@
     "dist"
   ],
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "@orvacon/cryptokit": "workspace:*"
   },
   "devDependencies": {
     "@orvacon/tsconfig": "workspace:*",
+    "@types/bun": "1.3.14",
     "typescript": "5.9.2"
   },
   "publishConfig": {

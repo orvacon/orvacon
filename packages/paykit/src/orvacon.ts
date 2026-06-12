@@ -1,17 +1,22 @@
 import type {
   AuthorizeInput,
-  CaptureInput,
+  ConnectorContext,
+  ConnectorErrorCode,
   ConnectorResult,
   Logger,
   NormalizedEvent,
   NormalizedEventType,
   OrvaconConnector,
+  RawError,
   RawWebhook,
-  RefundInput,
 } from "./connector";
-import type { DatabaseAdapter } from "./database";
-import type { Idempotent } from "./ids";
-import type { Payment } from "./state";
+import type { DatabaseAdapter, TransactionScope } from "./database";
+import { generatePaymentId, type IdempotencyKey, type Idempotent, type PaymentId } from "./ids";
+import { buildLedgerPair, LEDGER_GENESIS } from "./ledger";
+import type { Money } from "./money";
+import { addMoney, compareMoney, isZeroMoney, money, sameCurrency, subtractMoney } from "./money";
+import { buildConnectorRegistry, type ConnectorRegistry } from "./registry";
+import { assertTransition, canTransition, type Payment, type PaymentStatus } from "./state";
 
 /** A behavior plugin, bound via `plugins: []`. Contract firmed up later. */
 export interface OrvaconPlugin {
@@ -28,10 +33,8 @@ export type HookHandler = (payment: Payment, event: NormalizedEvent) => void | P
 
 /**
  * Event-keyed lifecycle hooks, e.g. `{ "payment.captured": async (p) => … }`.
- * Handlers fire after the transition has been persisted; the `Payment` they
- * receive carries the final status (so a refund hook can distinguish
- * `partially_refunded` from `refunded`). Before/after-operation hooks widen
- * this surface together with the orchestration body.
+ * Handlers fire after the transition has been persisted; a handler that throws
+ * is reported through `onError` and never breaks the payment flow.
  */
 export type Hooks = Partial<Record<NormalizedEventType, HookHandler>>;
 
@@ -57,45 +60,527 @@ export type OrvaconConfig = {
   hooks?: Hooks;
   /** Logger. Defaults to a no-op. */
   logger?: Logger;
-  /** Catch-all for errors the core could not otherwise surface. */
+  /** Catch-all for errors the core could not otherwise surface (e.g. a throwing hook). */
   onError?: (error: Error) => void;
-  /** Per-gateway-call timeout in milliseconds. */
+  /** Per-gateway-call timeout in milliseconds. Default 30 000. */
   timeout?: number;
-  /** Retry policy for transient gateway failures. */
+  /**
+   * Retry policy for transient gateway failures.
+   *
+   * @remarks Validated but not yet applied — automatic retries land together
+   * with outgoing-webhook delivery, where the same backoff machinery is shared.
+   */
   retry?: RetryConfig;
   /**
    * Ed25519 private key used to sign every webhook orvacon sends to the dev's
    * endpoint. Required — there is no unsigned-webhook mode. Generate a pair
-   * with the CLI and load the private half from an environment variable; the
-   * receiver verifies with the public half.
+   * with the CLI and load the private half from an environment variable.
+   *
+   * @remarks Validated at construction; outgoing webhook delivery itself ships
+   * with the cryptokit implementation.
    */
   webhookSigningKey: string;
 };
 
 /**
- * The application-facing orchestrator. The app calls these without knowing which
- * gateway is behind a payment.
+ * Application-facing authorize request. The core generates the payment id
+ * (applications never mint ids) and consumes the idempotency key; the
+ * connector receives a plain `AuthorizeInput` and sees neither concern.
+ * `connectorId` selects the gateway; it may be omitted when exactly one
+ * connector is registered.
+ */
+export type AuthorizeRequest = Idempotent<
+  Omit<AuthorizeInput, "paymentId"> & { connectorId?: string }
+>;
+
+/**
+ * Application-facing capture request. The gateway reference comes from the
+ * stored payment, never from the caller. Omit `amount` for a full capture.
+ */
+export type CaptureRequest = Idempotent<{ paymentId: PaymentId; amount?: Money }>;
+
+/**
+ * Application-facing refund request. Omit `amount` to refund everything still
+ * refundable (the captured amount minus refunds so far).
+ */
+export type RefundRequest = Idempotent<{ paymentId: PaymentId; amount?: Money }>;
+
+/**
+ * Outcome of a mutating operation. `paymentId` is present whenever a payment
+ * row exists — it is absent only when validation rejected the request before a
+ * payment was created.
+ */
+export type OperationOutcome = {
+  paymentId?: PaymentId;
+  result: ConnectorResult;
+};
+
+/** Outcome of an inbound webhook: the normalized event, the payment after processing, and whether this delivery was a duplicate (already-applied transitions are skipped, not re-applied). */
+export type WebhookOutcome = {
+  event: NormalizedEvent;
+  payment: Payment;
+  duplicate: boolean;
+};
+
+/**
+ * The application-facing orchestrator. The app calls these without knowing
+ * which gateway is behind a payment.
  */
 export interface Orvacon {
-  authorize(input: Idempotent<AuthorizeInput>): Promise<ConnectorResult>;
-  capture(input: Idempotent<CaptureInput>): Promise<ConnectorResult>;
-  refund(input: Idempotent<RefundInput>): Promise<ConnectorResult>;
+  authorize(request: AuthorizeRequest): Promise<OperationOutcome>;
+  capture(request: CaptureRequest): Promise<OperationOutcome>;
+  refund(request: RefundRequest): Promise<OperationOutcome>;
   /**
    * Handle an inbound gateway webhook. `connectorId` comes from the callback
-   * route (e.g. `/api/orva/callback/[connector]`).
-   *
-   * @remarks The return type will widen: beyond the {@link NormalizedEvent}, the
-   * body also advances state, writes the ledger, enforces idempotency, and emits
-   * the signed outgoing webhook. Kept narrow for the skeleton.
+   * route (e.g. `/api/orva/callback/[connector]`). Throws on an unknown
+   * connector, an unverifiable payload (the connector's signature check), or
+   * an unknown payment — the framework adapter maps those to 4xx responses.
    */
-  handleWebhook(connectorId: string, raw: RawWebhook): Promise<NormalizedEvent>;
+  handleWebhook(connectorId: string, raw: RawWebhook): Promise<WebhookOutcome>;
+}
+
+const noopLogger: Logger = {
+  debug() {},
+  info() {},
+  warn() {},
+  error() {},
+};
+
+const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
+
+function fail(code: ConnectorErrorCode, message: string): ConnectorResult {
+  return { ok: false, error: { code, message } };
+}
+
+function classifyError(rawCode: string, errorCodes?: Record<string, RawError>): ConnectorErrorCode {
+  return errorCodes?.[rawCode]?.code ?? "unknown";
+}
+
+function validateConfig(config: OrvaconConfig): void {
+  if (typeof config !== "object" || config === null) {
+    throw new TypeError("orvacon: config object is required");
+  }
+  if (typeof config.database !== "object" || config.database === null) {
+    throw new TypeError("orvacon: config.database (a database adapter) is required");
+  }
+  if (!Array.isArray(config.connectors)) {
+    throw new TypeError("orvacon: config.connectors must be an array");
+  }
+  if (typeof config.webhookSigningKey !== "string" || config.webhookSigningKey.length === 0) {
+    throw new TypeError("orvacon: config.webhookSigningKey is required (no unsigned-webhook mode)");
+  }
+  if (config.timeout !== undefined && (!Number.isFinite(config.timeout) || config.timeout <= 0)) {
+    throw new TypeError("orvacon: config.timeout must be a positive number of milliseconds");
+  }
 }
 
 /**
- * Construct an orvacon instance from a connector set and options.
- *
- * @remarks Skeleton — the orchestration body is not implemented yet.
+ * Construct an orvacon instance: validates config fail-fast, builds the
+ * connector registry, and wires the orchestration over the database adapter.
  */
-export function orvacon(_config: OrvaconConfig): Orvacon {
-  throw new Error("orvacon(): not implemented");
+export function orvacon(config: OrvaconConfig): Orvacon {
+  validateConfig(config);
+  const registry: ConnectorRegistry = buildConnectorRegistry(config.connectors);
+  const db = config.database;
+  const logger = config.logger ?? noopLogger;
+  const hooks = config.hooks ?? {};
+  const onError = config.onError;
+  const timeoutMs = config.timeout ?? DEFAULT_TIMEOUT_MS;
+
+  function makeContext(): ConnectorContext {
+    return { logger, signal: AbortSignal.timeout(timeoutMs), classifyError };
+  }
+
+  function report(error: unknown): void {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error(err.message);
+    onError?.(err);
+  }
+
+  async function fireHook(payment: Payment, event: NormalizedEvent): Promise<void> {
+    const handler = hooks[event.type];
+    if (!handler) {
+      return;
+    }
+    try {
+      await handler(payment, event);
+    } catch (error) {
+      report(error);
+    }
+  }
+
+  function syntheticEvent(
+    type: NormalizedEventType,
+    payment: Payment,
+    amount: Money,
+    raw: unknown,
+  ): NormalizedEvent {
+    return {
+      type,
+      paymentId: payment.id,
+      gatewayReference: payment.gatewayReference ?? "",
+      amount,
+      occurredAt: new Date().toISOString(),
+      raw,
+    };
+  }
+
+  async function withIdempotency(
+    key: IdempotencyKey,
+    run: () => Promise<OperationOutcome>,
+  ): Promise<OperationOutcome> {
+    const now = Date.now();
+    const claim = await db.insertIdempotencyKey({
+      key,
+      status: "in_progress",
+      createdAt: new Date(now).toISOString(),
+      expiresAt: new Date(now + DEFAULT_IDEMPOTENCY_TTL_MS).toISOString(),
+    });
+    if (!claim.inserted) {
+      const existing = claim.existing;
+      if (existing.status === "completed") {
+        return { paymentId: existing.paymentId, result: existing.result as ConnectorResult };
+      }
+      if (Date.parse(existing.expiresAt) > now) {
+        return {
+          paymentId: existing.paymentId,
+          result: fail(
+            "conflict",
+            "another request with this idempotency key is in progress; retry after it settles",
+          ),
+        };
+      }
+      const reclaimed = await db.reclaimIdempotencyKey(
+        key,
+        new Date(now + DEFAULT_IDEMPOTENCY_TTL_MS).toISOString(),
+      );
+      if (!reclaimed) {
+        return {
+          paymentId: existing.paymentId,
+          result: fail(
+            "conflict",
+            "another request just took over this stale idempotency key; retry after it settles",
+          ),
+        };
+      }
+    }
+    const outcome = await run();
+    if (outcome.paymentId) {
+      await db.completeIdempotencyKey(key, outcome.paymentId, outcome.result);
+    }
+    return outcome;
+  }
+
+  async function persistWithLedger(
+    paymentId: PaymentId,
+    from: PaymentStatus,
+    to: PaymentStatus,
+    patch: Partial<Pick<Payment, "gatewayReference" | "refundedTotal">> | undefined,
+    movement: { amount: Money; kind: "capture" | "refund" } | undefined,
+  ): Promise<Payment | null> {
+    assertTransition(from, to);
+    return db.transaction(async (tx: TransactionScope) => {
+      const updated = await tx.updatePaymentStatus(paymentId, from, to, patch);
+      if (updated && movement) {
+        const head = await tx.getLedgerHead();
+        const pair = await buildLedgerPair(head?.hash ?? LEDGER_GENESIS, {
+          paymentId,
+          amount: movement.amount,
+          occurredAt: new Date().toISOString(),
+          kind: movement.kind,
+        });
+        await tx.appendLedger(pair);
+      }
+      return updated;
+    });
+  }
+
+  function resolveAuthorizeConnector(
+    requested: string | undefined,
+  ): OrvaconConnector | ConnectorResult {
+    if (requested !== undefined) {
+      const connector = registry.get(requested);
+      return connector ?? fail("invalid_request", `unknown connector "${requested}"`);
+    }
+    if (registry.size > 1) {
+      return fail(
+        "invalid_request",
+        "multiple connectors are registered; specify connectorId on the request",
+      );
+    }
+    return registry.values().next().value as OrvaconConnector;
+  }
+
+  async function authorize(request: AuthorizeRequest): Promise<OperationOutcome> {
+    const resolved = resolveAuthorizeConnector(request.connectorId);
+    if ("ok" in resolved) {
+      return { result: resolved };
+    }
+    const connector = resolved;
+    if (request.threeDSecure && connector.capabilities.threeDSecure === "none") {
+      return {
+        result: fail("invalid_request", `connector "${connector.id}" does not support 3-D Secure`),
+      };
+    }
+    return withIdempotency(request.idempotencyKey, async () => {
+      const id = generatePaymentId();
+      const nowIso = new Date().toISOString();
+      const _payment = await db.createPayment({
+        id,
+        status: "created",
+        amount: request.amount,
+        connectorId: connector.id,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      });
+      const result = await connector.authorize(makeContext(), {
+        paymentId: id,
+        amount: request.amount,
+        source: request.source,
+        threeDSecure: request.threeDSecure,
+        callbackUrl: request.callbackUrl,
+      });
+      if (!result.ok) {
+        const failed = await db.updatePaymentStatus(id, "created", "failed");
+        if (failed) {
+          await fireHook(
+            failed,
+            syntheticEvent("payment.failed", failed, request.amount, result.error.raw),
+          );
+        }
+        return { paymentId: id, result };
+      }
+      if (result.status === "requires_action") {
+        await db.updatePaymentStatus(id, "created", "requires_action", {
+          gatewayReference: result.gatewayReference,
+        });
+        return { paymentId: id, result };
+      }
+      if (result.status !== "authorized" && result.status !== "captured") {
+        report(new Error(`connector "${connector.id}" returned "${result.status}" from authorize`));
+        return { paymentId: id, result };
+      }
+      const updated = await persistWithLedger(
+        id,
+        "created",
+        result.status,
+        { gatewayReference: result.gatewayReference },
+        result.status === "captured" ? { amount: request.amount, kind: "capture" } : undefined,
+      );
+      if (updated) {
+        const type = result.status === "captured" ? "payment.captured" : "payment.authorized";
+        await fireHook(updated, syntheticEvent(type, updated, request.amount, result.raw));
+      }
+      return { paymentId: id, result };
+    });
+  }
+
+  type LoadedPayment = { payment: Payment; connector: OrvaconConnector; gatewayReference: string };
+
+  async function loadForOperation(paymentId: PaymentId): Promise<LoadedPayment | ConnectorResult> {
+    const payment = await db.getPayment(paymentId);
+    if (!payment) {
+      return fail("invalid_request", `unknown payment "${paymentId}"`);
+    }
+    const connector = registry.get(payment.connectorId);
+    if (!connector) {
+      return fail(
+        "invalid_request",
+        `connector "${payment.connectorId}" is not registered on this instance`,
+      );
+    }
+    if (!payment.gatewayReference) {
+      return fail("invalid_request", `payment "${paymentId}" has no gateway reference yet`);
+    }
+    return { payment, connector, gatewayReference: payment.gatewayReference };
+  }
+
+  async function capture(request: CaptureRequest): Promise<OperationOutcome> {
+    const loaded = await loadForOperation(request.paymentId);
+    if ("ok" in loaded) {
+      return { paymentId: request.paymentId, result: loaded };
+    }
+    const { payment, connector, gatewayReference } = loaded;
+    if (!canTransition(payment.status, "captured")) {
+      return {
+        paymentId: payment.id,
+        result: fail("invalid_request", `cannot capture a payment in status "${payment.status}"`),
+      };
+    }
+    if (request.amount) {
+      if (!sameCurrency(request.amount, payment.amount)) {
+        return { paymentId: payment.id, result: fail("invalid_request", "currency mismatch") };
+      }
+      const isPartial = compareMoney(request.amount, payment.amount) === -1;
+      if (compareMoney(request.amount, payment.amount) === 1) {
+        return {
+          paymentId: payment.id,
+          result: fail("invalid_request", "capture amount exceeds the authorized amount"),
+        };
+      }
+      if (isPartial && !connector.capabilities.partialCapture) {
+        return {
+          paymentId: payment.id,
+          result: fail(
+            "invalid_request",
+            `connector "${connector.id}" does not support partial capture`,
+          ),
+        };
+      }
+    }
+    const captureAmount = request.amount ?? payment.amount;
+    return withIdempotency(request.idempotencyKey, async () => {
+      const result = await connector.capture(makeContext(), {
+        paymentId: payment.id,
+        gatewayReference,
+        amount: request.amount,
+      });
+      if (!result.ok) {
+        return { paymentId: payment.id, result };
+      }
+      const updated = await persistWithLedger(payment.id, payment.status, "captured", undefined, {
+        amount: captureAmount,
+        kind: "capture",
+      });
+      if (updated) {
+        await fireHook(
+          updated,
+          syntheticEvent("payment.captured", updated, captureAmount, result.raw),
+        );
+      } else {
+        logger.warn(`capture race on payment "${payment.id}": state moved concurrently`);
+      }
+      return { paymentId: payment.id, result };
+    });
+  }
+
+  async function refund(request: RefundRequest): Promise<OperationOutcome> {
+    const loaded = await loadForOperation(request.paymentId);
+    if ("ok" in loaded) {
+      return { paymentId: request.paymentId, result: loaded };
+    }
+    const { payment, connector, gatewayReference } = loaded;
+    if (!canTransition(payment.status, "refunded")) {
+      return {
+        paymentId: payment.id,
+        result: fail("invalid_request", `cannot refund a payment in status "${payment.status}"`),
+      };
+    }
+    const refundedTotal = payment.refundedTotal ?? money(0, payment.amount.currency);
+    const remaining = subtractMoney(payment.amount, refundedTotal);
+    if (isZeroMoney(remaining)) {
+      return {
+        paymentId: payment.id,
+        result: fail("invalid_request", "payment is already fully refunded"),
+      };
+    }
+    const delta = request.amount ?? remaining;
+    if (!sameCurrency(delta, payment.amount)) {
+      return { paymentId: payment.id, result: fail("invalid_request", "currency mismatch") };
+    }
+    if (compareMoney(delta, remaining) === 1) {
+      return {
+        paymentId: payment.id,
+        result: fail("invalid_request", "refund amount exceeds the refundable remainder"),
+      };
+    }
+    if (compareMoney(delta, remaining) === -1 && !connector.capabilities.partialRefund) {
+      return {
+        paymentId: payment.id,
+        result: fail(
+          "invalid_request",
+          `connector "${connector.id}" does not support partial refund`,
+        ),
+      };
+    }
+    return withIdempotency(request.idempotencyKey, async () => {
+      const result = await connector.refund(makeContext(), {
+        paymentId: payment.id,
+        gatewayReference,
+        amount: delta,
+      });
+      if (!result.ok) {
+        return { paymentId: payment.id, result };
+      }
+      const newTotal = addMoney(refundedTotal, delta);
+      const to: PaymentStatus =
+        compareMoney(newTotal, payment.amount) === 0 ? "refunded" : "partially_refunded";
+      const updated = await persistWithLedger(
+        payment.id,
+        payment.status,
+        to,
+        { refundedTotal: newTotal },
+        { amount: delta, kind: "refund" },
+      );
+      if (updated) {
+        await fireHook(updated, syntheticEvent("payment.refunded", updated, delta, result.raw));
+      } else {
+        logger.warn(`refund race on payment "${payment.id}": state moved concurrently`);
+      }
+      return { paymentId: payment.id, result };
+    });
+  }
+
+  function webhookTarget(event: NormalizedEvent, payment: Payment): PaymentStatus {
+    switch (event.type) {
+      case "payment.authorized":
+        return "authorized";
+      case "payment.captured":
+        return "captured";
+      case "payment.failed":
+        return "failed";
+      case "payment.voided":
+        return "voided";
+      case "payment.refunded": {
+        const total = addMoney(
+          payment.refundedTotal ?? money(0, payment.amount.currency),
+          event.amount,
+        );
+        return compareMoney(total, payment.amount) === -1 ? "partially_refunded" : "refunded";
+      }
+    }
+  }
+
+  async function handleWebhook(connectorIdValue: string, raw: RawWebhook): Promise<WebhookOutcome> {
+    const connector = registry.get(connectorIdValue);
+    if (!connector) {
+      throw new Error(`orvacon: webhook for unknown connector "${connectorIdValue}"`);
+    }
+    const event = await connector.parseWebhook(makeContext(), raw);
+    const payment = await db.getPayment(event.paymentId);
+    if (!payment) {
+      throw new Error(`orvacon: webhook for unknown payment "${event.paymentId}"`);
+    }
+    const to = webhookTarget(event, payment);
+    if (payment.status === to || !canTransition(payment.status, to)) {
+      return { event, payment, duplicate: true };
+    }
+    const movement =
+      event.type === "payment.captured"
+        ? ({ amount: event.amount, kind: "capture" } as const)
+        : event.type === "payment.refunded"
+          ? ({ amount: event.amount, kind: "refund" } as const)
+          : undefined;
+    const patch =
+      event.type === "payment.refunded"
+        ? {
+            refundedTotal: addMoney(
+              payment.refundedTotal ?? money(0, payment.amount.currency),
+              event.amount,
+            ),
+          }
+        : event.type === "payment.authorized" || event.type === "payment.captured"
+          ? { gatewayReference: event.gatewayReference }
+          : undefined;
+    const updated = await persistWithLedger(payment.id, payment.status, to, patch, movement);
+    if (!updated) {
+      const current = await db.getPayment(payment.id);
+      return { event, payment: current ?? payment, duplicate: true };
+    }
+    await fireHook(updated, event);
+    return { event, payment: updated, duplicate: false };
+  }
+
+  return { authorize, capture, refund, handleWebhook };
 }
