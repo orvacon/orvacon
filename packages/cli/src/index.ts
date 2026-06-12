@@ -2,19 +2,19 @@
 
 const VERSION = "0.0.1";
 
-const HELP = `orvacon — provider-bağımsız, TypeScript-first ödeme orchestration
+const HELP = `orvacon — provider-agnostic, TypeScript-first payment orchestration
 
-Kullanım
-  orvacon <komut> [seçenekler]
+Usage
+  orvacon <command> [options]
 
-Komutlar
-  (henüz yok — bu sürüm bir placeholder)
+Commands
+  (none yet — this release is a placeholder)
 
-Seçenekler
-  -v, --version   sürümü yazdır
-  -h, --help      bu yardımı göster
+Options
+  -v, --version   print the version
+  -h, --help      show this help
 
-Daha fazlası: https://orvacon.com`;
+Learn more: https://orvacon.com`;
 
 function main(args: string[]): number {
   const arg = args[0];
@@ -29,7 +29,7 @@ function main(args: string[]): number {
     return 0;
   }
 
-  process.stderr.write(`Bilinmeyen komut: ${arg}\nYardım için: orvacon --help\n`);
+  process.stderr.write(`Unknown command: ${arg}\nRun: orvacon --help\n`);
   return 1;
 }
 

@@ -1,11 +1,11 @@
 # @orvacon/cli
 
-orvacon CLI — provider-bağımsız, TypeScript-first ödeme orchestration.
+orvacon CLI — provider-agnostic, TypeScript-first payment orchestration.
 
-> **Durum:** Placeholder sürüm (`0.0.1`). İsim rezervasyonu için yayınlandı; gerçek komutlar henüz yok.
+> **Status:** Placeholder release (`0.0.1`). Published to reserve the name; real commands are not here yet.
 
 ```bash
 npx orvacon --help
 ```
 
-Daha fazlası: [orvacon.com](https://orvacon.com)
+Learn more: [orvacon.com](https://orvacon.com)

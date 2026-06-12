@@ -37,6 +37,6 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-# Internal docs — public repo'ya gitmez (kurucu-içi bağlam / strateji).
-# Diskte kalır, ajan görür; pushlanmaz. Tüm klasör (md + svg dahil).
+# Internal docs — never pushed to the public repo (founder-internal context / strategy).
+# Stays on disk, visible to the agent, never pushed. Whole folder (md + svg).
 docs/
