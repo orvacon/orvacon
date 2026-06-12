@@ -69,6 +69,17 @@ When unsure about a gateway detail, verify against the gateway's official docs a
 
 **Not v1:** PayTR, uikit, subkit/taxkit/fraudkit/ledgerkit, other framework adapters, docs site. A good idea is not the same as "now." Flag scope creep; prefer one vertical slice (one working payment) over breadth.
 
+## Tooling and workflow
+
+Bun monorepo (Turborepo). The agent runs these — don't leave them for the human:
+
+- **Format + lint: Biome.** Run `bun run lint` (and `bun run format` / `bun run lint:fix` to fix) before committing. CI runs `biome ci .` and fails on any issue. No ESLint, no Prettier.
+- **Types:** `bun run check-types` (per-package `tsc --noEmit`, wired through Turborepo). Must pass before committing.
+- **New package:** `bun run turbo gen` (`connector` / `kit` / `adapter`) — never hand-copy a package.
+- **Commits:** Conventional Commits (`type(scope): subject`). **Never add a `Co-Authored-By` or any AI-attribution trailer.**
+- **Branches/PRs:** Real feature work goes on a branch + PR so CI and the changeset check gate it; `main` stays green and releasable. Never force-push or rewrite `main`.
+- **Dependencies:** Lockfile is committed and CI installs with `--frozen-lockfile`. Pin GitHub Actions to a commit SHA (Dependabot updates them). Don't add a dependency a payments library shouldn't carry.
+
 ## Versioning (Changesets)
 
 Versions are managed with [Changesets](https://github.com/changesets/changesets) — never bump `version` in a `package.json` by hand. **The agent adds a changeset whenever it changes a publishable package in a way a consumer would notice** (new/changed API, bug fix, behavior change).
