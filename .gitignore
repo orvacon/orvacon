@@ -38,6 +38,5 @@ yarn-error.log*
 *.pem
 
 # Internal docs — public repo'ya gitmez (kurucu-içi bağlam / strateji).
-# Diskte kalır, ajan görür; pushlanmaz. Bkz. parent klasördeki REPOS.md mantığı.
-docs/CONTEXT.md
-docs/roadmap.md
+# Diskte kalır, ajan görür; pushlanmaz. Tüm klasör (md + svg dahil).
+docs/
