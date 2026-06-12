@@ -47,7 +47,7 @@ function encodeTime(ms: number): string {
   let rest = ms;
   const out = new Array<string>(10);
   for (let i = 9; i >= 0; i--) {
-    out[i] = CROCKFORD[rest % 32] as string;
+    out[i] = CROCKFORD.charAt(rest % 32);
     rest = Math.floor(rest / 32);
   }
   return out.join("");
@@ -57,7 +57,7 @@ function encodeRandom(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   let out = "";
   for (const b of bytes) {
-    out += CROCKFORD[b & 31];
+    out += CROCKFORD.charAt(b & 31);
   }
   return out;
 }

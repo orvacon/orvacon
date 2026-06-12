@@ -16,13 +16,15 @@ import {
   generatePaymentId,
   idempotencyKey,
   money,
+  type OperationOutcome,
   orvacon,
+  type PaymentId,
   paymentId,
   subtractMoney,
 } from "../src/index";
 import { memoryAdapter } from "./memory-adapter";
 
-const CAPABILITIES: ConnectorCapabilities = {
+const CAPABILITIES = {
   signatureEncoding: "hex",
   callbackUrl: "api",
   threeDSecure: "html",
@@ -31,7 +33,7 @@ const CAPABILITIES: ConnectorCapabilities = {
   partialRefund: true,
   fraudStatus: true,
   autoCapture: true,
-};
+} satisfies ConnectorCapabilities;
 
 type FakeConnector = OrvaconConnector & {
   calls: { authorize: number; capture: number; refund: number };
@@ -90,6 +92,13 @@ function instance(connector: OrvaconConnector, db = memoryAdapter()) {
   };
 }
 
+function requirePaymentId(outcome: OperationOutcome): PaymentId {
+  if (!outcome.paymentId) {
+    throw new Error("expected outcome.paymentId");
+  }
+  return outcome.paymentId;
+}
+
 describe("money", () => {
   test("rejects floats, negatives, bad currency", () => {
     expect(() => money(10.5, "TRY")).toThrow(TypeError);
@@ -138,7 +147,7 @@ describe("authorize", () => {
       source: { type: "token", token: { token: "tok_1" } },
     });
     expect(outcome.result.ok).toBe(true);
-    const stored = db.payments.get(outcome.paymentId as string);
+    const stored = db.payments.get(requirePaymentId(outcome));
     expect(stored?.status).toBe("captured");
     expect(db.ledger).toHaveLength(2);
     expect(db.ledger[0]?.prevHash).toBe("0".repeat(64));
@@ -220,7 +229,7 @@ describe("authorize", () => {
       source: { type: "token", token: { token: "tok" } },
     });
     expect(outcome.result.ok).toBe(false);
-    expect(db.payments.get(outcome.paymentId as string)?.status).toBe("failed");
+    expect(db.payments.get(requirePaymentId(outcome))?.status).toBe("failed");
     expect(db.ledger).toHaveLength(0);
   });
 });
@@ -239,7 +248,7 @@ describe("capture", () => {
     });
     const outcome = await pay.capture({
       idempotencyKey: idempotencyKey("k-cap"),
-      paymentId: paymentId(authorized.paymentId as string),
+      paymentId: requirePaymentId(authorized),
       amount: money(4_000, "TRY"),
     });
     expect(outcome.result.ok).toBe(false);
@@ -259,7 +268,7 @@ describe("refund", () => {
       amount: money(10_000, "TRY"),
       source: { type: "token", token: { token: "tok" } },
     });
-    const id = paymentId(authorized.paymentId as string);
+    const id = requirePaymentId(authorized);
     const partial = await pay.refund({
       idempotencyKey: idempotencyKey("k-r1"),
       paymentId: id,
@@ -291,7 +300,7 @@ describe("refund", () => {
     });
     const outcome = await pay.refund({
       idempotencyKey: idempotencyKey("k-over"),
-      paymentId: paymentId(authorized.paymentId as string),
+      paymentId: requirePaymentId(authorized),
       amount: money(2_000, "TRY"),
     });
     expect(outcome.result.ok).toBe(false);
@@ -323,9 +332,9 @@ describe("handleWebhook", () => {
       source: { type: "token", token: { token: "tok" } },
       threeDSecure: true,
     });
-    eventPaymentId = paymentId(authorized.paymentId as string);
+    eventPaymentId = requirePaymentId(authorized);
     expect(db.payments.get(eventPaymentId)?.status).toBe("requires_action");
-    const raw: RawWebhook = { headers: {}, body: "{}" };
+    const raw = { headers: {}, body: "{}" } satisfies RawWebhook;
     const first = await pay.handleWebhook("fake", raw);
     expect(first.duplicate).toBe(false);
     expect(first.payment.status).toBe("captured");

@@ -26,7 +26,7 @@ export function memoryAdapter(): DatabaseAdapter & {
   const ledger: LedgerEntry[] = [];
   const idempotency = new Map<string, IdempotencyRecord>();
 
-  const scope: TransactionScope = {
+  const scope = {
     id: "memory",
     async createPayment(payment: Payment): Promise<Payment> {
       payments.set(payment.id, payment);
@@ -45,12 +45,12 @@ export function memoryAdapter(): DatabaseAdapter & {
       if (!current || current.status !== from) {
         return null;
       }
-      const updated: Payment = {
+      const updated = {
         ...current,
         ...patch,
         status: to,
         updatedAt: new Date().toISOString(),
-      };
+      } satisfies Payment;
       payments.set(id, updated);
       return updated;
     },
@@ -89,7 +89,7 @@ export function memoryAdapter(): DatabaseAdapter & {
     async appendLedger(entries: readonly LedgerEntry[]): Promise<void> {
       ledger.push(...entries);
     },
-  };
+  } satisfies TransactionScope;
 
   return {
     ...scope,

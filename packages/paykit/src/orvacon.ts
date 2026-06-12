@@ -139,12 +139,12 @@ export interface Orvacon {
   handleWebhook(connectorId: string, raw: RawWebhook): Promise<WebhookOutcome>;
 }
 
-const noopLogger: Logger = {
+const noopLogger = {
   debug() {},
   info() {},
   warn() {},
   error() {},
-};
+} satisfies Logger;
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
@@ -226,6 +226,13 @@ export function orvacon(config: OrvaconConfig): Orvacon {
     };
   }
 
+  /**
+   * Claim-or-replay wrapper around a mutating operation. The replay path casts
+   * the stored `result` back to `ConnectorResult` — sound because the only
+   * writer is `completeIdempotencyKey` below, which stores exactly the
+   * `ConnectorResult` this function produced (a serialization boundary, the
+   * one place outside brand factories where a cast is permitted).
+   */
   async function withIdempotency(
     key: IdempotencyKey,
     run: () => Promise<OperationOutcome>,
@@ -309,7 +316,8 @@ export function orvacon(config: OrvaconConfig): Orvacon {
         "multiple connectors are registered; specify connectorId on the request",
       );
     }
-    return registry.values().next().value as OrvaconConnector;
+    const sole = registry.values().next().value;
+    return sole ?? fail("invalid_request", "no connector is registered");
   }
 
   async function authorize(request: AuthorizeRequest): Promise<OperationOutcome> {
