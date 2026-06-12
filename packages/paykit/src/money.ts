@@ -1,5 +1,4 @@
-/** Attach a compile-time brand `B` to a primitive `T`. */
-type Brand<T, B extends string> = T & { readonly __brand: B };
+import type { Brand } from "./brand";
 
 /**
  * Integer minor units (e.g. kuruş, cents), always non-negative. Branded so a
