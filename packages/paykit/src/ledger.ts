@@ -1,3 +1,4 @@
+import { sha256, toHex } from "@orvacon/cryptokit";
 import type { LedgerEntry } from "./database";
 import type { PaymentId } from "./ids";
 import type { Money } from "./money";
@@ -13,11 +14,6 @@ export type LedgerMovement = {
   kind: "capture" | "refund";
 };
 
-async function sha256Hex(input: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 async function sealEntry(entry: Omit<LedgerEntry, "hash">): Promise<LedgerEntry> {
   const preimage = [
     entry.prevHash,
@@ -28,7 +24,7 @@ async function sealEntry(entry: Omit<LedgerEntry, "hash">): Promise<LedgerEntry>
     entry.amount.currency,
     entry.occurredAt,
   ].join("\n");
-  return { ...entry, hash: await sha256Hex(preimage) };
+  return { ...entry, hash: toHex(await sha256(preimage)) };
 }
 
 /**
