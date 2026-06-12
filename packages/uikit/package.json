@@ -1,0 +1,16 @@
+{
+  "name": "@orvacon/uikit",
+  "version": "0.0.0",
+  "description": "Owned, shadcn-style checkout components (ships via registry, not npm).",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@orvacon/tsconfig": "workspace:*",
+    "typescript": "5.9.2"
+  }
+}

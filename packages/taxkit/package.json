@@ -1,0 +1,21 @@
+{
+  "name": "@orvacon/taxkit",
+  "version": "0.0.0",
+  "description": "Tax/VAT calculation for orvacon.",
+  "license": "MIT",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "files": ["dist"],
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@orvacon/paykit": "workspace:^"
+  },
+  "devDependencies": {
+    "@orvacon/paykit": "workspace:*",
+    "@orvacon/tsconfig": "workspace:*",
+    "typescript": "5.9.2"
+  },
+  "publishConfig": { "access": "public" }
+}

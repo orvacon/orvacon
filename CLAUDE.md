@@ -2,7 +2,7 @@
 
 Guidance for AI agents (Claude Code, Cursor, etc.) working in this repository.
 
-> **orvacon** is a provider-agnostic, open-source, TypeScript-first payment orchestration library — "the Better Auth of payments." Gateways (Iyzico, PayTR, bank virtual POS) plug in as connectors behind a single, clean, type-safe API. The app code never knows which gateway is used.
+> **orvacon** is a provider-agnostic, open-source, TypeScript-first payment orchestration library. Gateways (Iyzico, PayTR, bank virtual POS) plug in as connectors behind a single, clean, type-safe API. The app code never knows which gateway is used.
 
 This file is the self-contained operational guide for agents working in this repository.
 
@@ -12,7 +12,7 @@ This file is the self-contained operational guide for agents working in this rep
 
 ## Non-negotiable rules
 
-1. **TypeScript everywhere.** Core included. No separate service — this is a library that runs in the dev's own runtime (Better Auth model).
+1. **TypeScript everywhere.** Core included. No separate service — this is a library that runs in the dev's own runtime, installed into their app.
 2. **Never hold money.** Funds flow card → merchant's gateway account directly. orvacon only orchestrates. This keeps it out of financial regulation. No wallet, no balance, no marketplace payout.
 3. **Money is `integer minor units + currency`.** Never `float`. Use the branded `Money` type. Floats may only appear at the connector's gateway boundary, never in the core.
 4. **Constant-time comparison for all signatures/tokens.** Use cryptokit `timingSafeEqual`. NEVER copy gateway sample code that uses `==` / `===` / `!=` (timing-unsafe). Both Iyzico and PayTR official samples are timing-unsafe.
@@ -27,7 +27,7 @@ Four kinds of package, three binding points:
 - **Connector** — gateway adapter (`@orvacon/connector-iyzico`). Binds via `connectors: []`. Talks to a gateway; does NOT expose HTTP endpoints.
 - **Kit (plugin)** — adds behavior (`@orvacon/subkit`, `fraudkit`, `taxkit`, `ledgerkit`, `testkit`). Binds via `plugins: []`.
 - **Adapter** — infra bridge (`@orvacon/adapter-supabase`, framework handlers). Binds via `database:` / `toNextJsHandler(...)`.
-- **Primitive/tool** — standalone (`@orvacon/cryptokit`, `cli`, `tsconfig`). Imported/run, binds nowhere.
+- **Primitive/tool** — standalone (`@orvacon/cryptokit`, `tsconfig`, and the CLI). Imported/run, binds nowhere. The CLI publishes as the **unscoped `orvacon`** package (so `npx orvacon` just works, shadcn-style), not `@orvacon/cli`.
 
 The core package is **`@orvacon/paykit`** — there is NO `@orvacon/core` (the name "core" never appears as a package; it breaks the kit aesthetic). `uikit` is the exception: not npm, it ships via a shadcn-style registry (`npx orvacon add`).
 
@@ -35,7 +35,7 @@ The core package is **`@orvacon/paykit`** — there is NO `@orvacon/core` (the n
 
 ## Bundle isolation
 
-Every kit and connector is a **separate npm package**. The dev installs only what they need; an unused connector's deps never enter the bundle. Don't bundle everything into one `plugins` package (Better Auth does this; we deliberately don't). Connectors/kits take the `@orvacon/paykit` core type as a `peerDependency`. The shared connector type is exported from `@orvacon/paykit/connector`, separate from heavy runtime. Adapters are separate packages too (`@orvacon/adapter-*`), not paykit subpaths, to keep e.g. `@supabase/supabase-js` out of paykit.
+Every kit and connector is a **separate npm package**. The dev installs only what they need; an unused connector's deps never enter the bundle. Don't bundle everything into one `plugins` package. Connectors/kits take the `@orvacon/paykit` core type as a `peerDependency`. The shared connector type is exported from `@orvacon/paykit/connector`, separate from heavy runtime. Adapters are separate packages too (`@orvacon/adapter-*`), not paykit subpaths, to keep e.g. `@supabase/supabase-js` out of paykit.
 
 ## Code style
 
@@ -68,6 +68,14 @@ When unsure about a gateway detail, verify against the gateway's official docs a
 **v1 = `paykit` core + Iyzico connector + Next.js adapter + Supabase adapter + CLI + cross-cutting infra.** Done when a dev can install orvacon, generate schema+RLS, take a real sandbox 3DS payment, capture/refund, and verify a signed webhook.
 
 **Not v1:** PayTR, uikit, subkit/taxkit/fraudkit/ledgerkit, other framework adapters, docs site. A good idea is not the same as "now." Flag scope creep; prefer one vertical slice (one working payment) over breadth.
+
+## Versioning (Changesets)
+
+Versions are managed with [Changesets](https://github.com/changesets/changesets) — never bump `version` in a `package.json` by hand. **The agent adds a changeset whenever it changes a publishable package in a way a consumer would notice** (new/changed API, bug fix, behavior change).
+
+- Add one with `bun run changeset` (or write `.changeset/<name>.md` directly): list the affected `@orvacon/*` packages and pick `patch` / `minor` / `major` (semver; pre-1.0, breaking goes in `minor`). Write the summary in English, consumer-facing.
+- No changeset for internal-only edits: tests, tooling, docs, CI, private packages (`uikit`, `tsconfig`, the apps).
+- `bun run version` applies pending changesets (bumps + changelogs); `bun run release` builds then publishes. These are release steps, not per-change steps.
 
 ## When working here
 

@@ -1,0 +1,22 @@
+{
+  "name": "@orvacon/adapter-drizzle",
+  "version": "0.0.0",
+  "description": "Generic Postgres (Drizzle) database adapter for orvacon.",
+  "license": "MIT",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "files": ["dist"],
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@orvacon/paykit": "workspace:^",
+    "drizzle-orm": "^0.36"
+  },
+  "devDependencies": {
+    "@orvacon/paykit": "workspace:*",
+    "@orvacon/tsconfig": "workspace:*",
+    "typescript": "5.9.2"
+  },
+  "publishConfig": { "access": "public" }
+}

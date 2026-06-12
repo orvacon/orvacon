@@ -1,0 +1,3 @@
+[install]
+# Pin resolved versions exactly; workspaces are read from package.json "workspaces".
+exact = true

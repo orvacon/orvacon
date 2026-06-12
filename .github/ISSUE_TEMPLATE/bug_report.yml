@@ -27,7 +27,7 @@ body:
     id: package
     attributes:
       label: Package and version
-      description: e.g. "@orvacon/paykit 0.x.y", "@orvacon/cli 0.x.y"
+      description: e.g. "@orvacon/paykit 0.x.y", "orvacon 0.x.y"
     validations:
       required: true
   - type: dropdown

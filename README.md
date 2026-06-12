@@ -2,7 +2,7 @@
 
 # orvacon
 
-**Provider-agnostic, TypeScript-first payment orchestration — "the Better Auth of payments."**
+**Provider-agnostic, TypeScript-first payment orchestration.**
 
 [![CI](https://github.com/orvacon/orvacon/actions/workflows/ci.yml/badge.svg)](https://github.com/orvacon/orvacon/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
@@ -21,7 +21,7 @@ plug in behind a single, clean, type-safe API as **connectors** — your applica
 never knows which gateway is handling a payment. Swap or add a gateway by changing
 configuration, not application logic.
 
-It is a library that runs in your own runtime (the Better Auth model), not a hosted
+It is a library that runs in your own runtime, not a hosted
 service you have to deploy and route money through.
 
 ## Principles
@@ -50,7 +50,7 @@ apps/
   web/        Next.js app (placeholder)
   docs/       Next.js app (placeholder)
 packages/
-  cli/        @orvacon/cli — command-line tool (placeholder)
+  cli/        orvacon — command-line tool (placeholder)
 ```
 
 More packages (`@orvacon/paykit`, `connector-iyzico`, `adapter-supabase`, `cryptokit`, …)

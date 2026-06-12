@@ -1,0 +1,17 @@
+{
+  "name": "@orvacon/cryptokit",
+  "version": "0.0.0",
+  "description": "Cryptographic primitives for orvacon (Ed25519, HKDF, timing-safe compare).",
+  "license": "MIT",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "files": ["dist"],
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@orvacon/tsconfig": "workspace:*",
+    "typescript": "5.9.2"
+  },
+  "publishConfig": { "access": "public" }
+}

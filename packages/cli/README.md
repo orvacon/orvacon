@@ -1,4 +1,4 @@
-# @orvacon/cli
+# orvacon (CLI)
 
 orvacon CLI — provider-agnostic, TypeScript-first payment orchestration.
 

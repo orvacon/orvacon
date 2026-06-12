@@ -1,0 +1,8 @@
+{
+  "name": "@orvacon/tsconfig",
+  "version": "0.0.0",
+  "description": "Shared TypeScript configuration for orvacon.",
+  "license": "MIT",
+  "private": true,
+  "files": ["base.json", "library.json", "nextjs.json"]
+}

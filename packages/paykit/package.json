@@ -1,0 +1,23 @@
+{
+  "name": "@orvacon/paykit",
+  "version": "0.0.0",
+  "description": "Provider-agnostic, TypeScript-first payment orchestration core.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./connector": "./src/connector.ts"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orvacon/cryptokit": "workspace:*"
+  },
+  "devDependencies": {
+    "@orvacon/tsconfig": "workspace:*",
+    "typescript": "5.9.2"
+  },
+  "publishConfig": { "access": "public" }
+}

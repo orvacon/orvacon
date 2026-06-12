@@ -1,5 +1,5 @@
 {
-  "name": "@orvacon/cli",
+  "name": "orvacon",
   "version": "0.0.1",
   "description": "orvacon CLI — provider-agnostic, TypeScript-first payment orchestration. Placeholder release.",
   "license": "MIT",
