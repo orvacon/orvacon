@@ -39,6 +39,7 @@ Every kit and connector is a **separate npm package**. The dev installs only wha
 
 ## Code style
 
+- **Coding standard:** the normative, detailed standard is `docs/CODING_STANDARD.md` (founder-internal, gitignored — present in the founder's checkout). When that file is present, read it before writing package code; the bullets below are the always-on summary.
 - **No decorative comment dividers** (`// ─────` is banned). Use TSDoc for documentation; no inline explanatory comments.
 - **Discriminated unions** for results and state. Connectors return `{ ok: true, ... } | { ok: false, error }`, never throw.
 - **State machine** transitions (`created → authorized → captured → refunded`, plus `requires_action`, `failed`, `voided`) enforced at compile time via discriminated unions.
