@@ -1,20 +1,26 @@
 {
   "name": "@orvacon/cryptokit",
   "version": "0.0.0",
-  "description": "Cryptographic primitives for orvacon (Ed25519, HKDF, timing-safe compare).",
+  "description": "Zero-dependency cryptographic primitives for orvacon: Ed25519 signing, HMAC-SHA256, SHA-256, HKDF, timing-safe comparison, and the signed-webhook envelope. Web Crypto only.",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts"
   },
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
   },
   "devDependencies": {
     "@orvacon/tsconfig": "workspace:*",
+    "@types/bun": "1.3.14",
     "typescript": "5.9.2"
   },
   "publishConfig": {
