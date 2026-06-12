@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a defect in orvacon
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please keep everything in English.
+        Do not paste real API keys, card numbers, or other secrets.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+      placeholder: When I call capture() after a 3DS authorize, ...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps or a code snippet that triggers the bug.
+      render: ts
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Package and version
+      description: e.g. "@orvacon/paykit 0.x.y", "@orvacon/cli 0.x.y"
+    validations:
+      required: true
+  - type: dropdown
+    id: gateway
+    attributes:
+      label: Gateway involved
+      options:
+        - None / not gateway-specific
+        - Iyzico
+        - PayTR
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Runtime (Node/Bun version), OS, framework (Next.js version), database.
+    validations:
+      required: false

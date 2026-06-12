@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/orvacon/orvacon/security/advisories/new
+    about: Do NOT open a public issue for security problems. Report privately here. See SECURITY.md.
+  - name: Questions and discussion
+    url: https://github.com/orvacon/orvacon/discussions
+    about: For usage questions, ideas, and general discussion.
