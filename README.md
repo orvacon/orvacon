@@ -62,9 +62,9 @@ land as development progresses.
 bun install
 bun run build         # build all packages
 bun run dev           # run in dev
-bun run lint          # lint
+bun run lint          # lint + format check (Biome)
+bun run format        # auto-format (Biome)
 bun run check-types   # type check
-bun run format        # prettier
 ```
 
 ## Contributing

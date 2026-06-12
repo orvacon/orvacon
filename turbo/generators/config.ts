@@ -66,7 +66,11 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
     prompts: [
       { type: "input", name: "name", message: "adapter name (e.g. supabase):" },
       { type: "input", name: "description", message: "one-line description:" },
-      { type: "input", name: "dbDep", message: "database peer dependency (e.g. @supabase/supabase-js):" },
+      {
+        type: "input",
+        name: "dbDep",
+        message: "database peer dependency (e.g. @supabase/supabase-js):",
+      },
       { type: "input", name: "dbRange", message: "its semver range (e.g. ^2):" },
     ],
     actions: [

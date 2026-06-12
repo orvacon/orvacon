@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # npm dependencies across every workspace.
+  - package-ecosystem: npm
+    directories:
+      - "/"
+      - "/apps/*"
+      - "/packages/*"
+      - "/connectors/*"
+      - "/adapters/*"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    # Wait before adopting a freshly published version — guards against a
+    # compromised release being pulled in on day zero.
+    cooldown:
+      default-days: 5
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+
+  # Keep GitHub Actions pinned-by-SHA references up to date (with their tags).
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]

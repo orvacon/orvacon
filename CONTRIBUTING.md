@@ -21,12 +21,14 @@ This is a [Turborepo](https://turborepo.dev) monorepo managed with [Bun](https:/
 bun install
 bun run build        # build all packages
 bun run dev          # run apps/packages in dev
-bun run lint         # lint
+bun run lint         # lint + format check (Biome)
+bun run format       # auto-format (Biome)
 bun run check-types  # type check
-bun run format       # prettier
 ```
 
-Workspaces live under `apps/*` and `packages/*`.
+Workspaces live under `apps/*`, `packages/*`, `connectors/*`, and `adapters/*`.
+
+Scaffold a new package with `bun run turbo gen` (`connector`, `kit`, or `adapter`).
 
 ## Workflow
 

@@ -8,7 +8,9 @@
     ".": "./src/index.ts",
     "./connector": "./src/connector.ts"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "check-types": "tsc --noEmit"
   },
@@ -19,5 +21,7 @@
     "@orvacon/tsconfig": "workspace:*",
     "typescript": "5.9.2"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  }
 }

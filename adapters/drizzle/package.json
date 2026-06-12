@@ -4,8 +4,12 @@
   "description": "Generic Postgres (Drizzle) database adapter for orvacon.",
   "license": "MIT",
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "files": ["dist"],
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "check-types": "tsc --noEmit"
   },
@@ -18,5 +22,7 @@
     "@orvacon/tsconfig": "workspace:*",
     "typescript": "5.9.2"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  }
 }
