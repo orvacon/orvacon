@@ -24,6 +24,7 @@ import type {
   OperationOutcome,
   Orvacon,
   OrvaconConfig,
+  ReconcileResult,
   RefundRequest,
   WebhookOutcome,
 } from "./types";
@@ -37,6 +38,7 @@ export type {
   Orvacon,
   OrvaconConfig,
   OrvaconPlugin,
+  ReconcileResult,
   RefundRequest,
   WebhookOutcome,
 } from "./types";
@@ -506,6 +508,18 @@ export function orvacon(config: OrvaconConfig): Orvacon {
     if (!payment) {
       throw new Error(`orvacon: webhook for unknown payment "${event.paymentId}"`);
     }
+    return settleEvent(payment, event);
+  }
+
+  /**
+   * Apply a settled {@link NormalizedEvent} to its payment — the shared tail of
+   * webhook handling and reconciliation. Both reach "the gateway moved this
+   * payment" by different routes (an inbound webhook vs a retrieve) and then do
+   * the identical thing: skip duplicates, refuse a captured/authorized amount
+   * that disagrees with the stored amount (moving the payment to `failed`), and
+   * otherwise transition + ledger + emit in one transaction.
+   */
+  async function settleEvent(payment: Payment, event: NormalizedEvent): Promise<WebhookOutcome> {
     const to = webhookTarget(event, payment);
     if (payment.status === to || !canTransition(payment.status, to)) {
       return { event, payment, duplicate: true };
@@ -561,11 +575,66 @@ export function orvacon(config: OrvaconConfig): Orvacon {
     return { event, payment: updated, duplicate: false };
   }
 
+  async function reconcile(paymentId: PaymentId): Promise<ReconcileResult> {
+    const payment = await db.getPayment(paymentId);
+    if (!payment) {
+      return {
+        ok: false,
+        error: { code: "invalid_request", message: `unknown payment "${paymentId}"` },
+      };
+    }
+    const connector = registry.get(payment.connectorId);
+    if (!connector?.retrievePayment) {
+      return {
+        ok: false,
+        error: {
+          code: "invalid_request",
+          message: `connector "${payment.connectorId}" does not support reconciliation`,
+        },
+      };
+    }
+    // Only a payment awaiting its gateway result is reconcilable: `created` has no
+    // gateway reference yet, and terminal states have nothing left to settle.
+    if (payment.status !== "requires_action") {
+      return {
+        ok: false,
+        error: {
+          code: "invalid_request",
+          message: `payment "${paymentId}" is not awaiting reconciliation (status "${payment.status}")`,
+        },
+      };
+    }
+    if (!payment.gatewayReference) {
+      return {
+        ok: false,
+        error: {
+          code: "invalid_request",
+          message: `payment "${paymentId}" has no gateway reference`,
+        },
+      };
+    }
+    const outcome = await connector.retrievePayment(makeContext(), {
+      paymentId: payment.id,
+      gatewayReference: payment.gatewayReference,
+    });
+    if (!outcome.ok) {
+      return { ok: false, error: outcome.error };
+    }
+    // The gateway still reports it pending — leave the payment untouched. Marking
+    // a pending payment captured would invent money movement that never happened.
+    if (!outcome.resolved) {
+      return { ok: true, resolved: false, payment };
+    }
+    const settled = await settleEvent(payment, outcome.event);
+    return { ok: true, resolved: true, payment: settled.payment, event: settled.event };
+  }
+
   return {
     authorize,
     capture,
     refund,
     handleWebhook,
+    reconcile,
     drainWebhooks: deliverer ? () => deliverer.idle() : () => Promise.resolve(),
   };
 }

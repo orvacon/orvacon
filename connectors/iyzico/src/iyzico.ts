@@ -5,6 +5,7 @@ import { type IyzicoConfig, resolveIyzicoConfig } from "./config";
 import { IYZICO_ERROR_CODES } from "./error-codes";
 import { parseWebhook } from "./parse-webhook";
 import { refund } from "./refund";
+import { retrievePayment } from "./retrieve";
 import { createTransport } from "./transport";
 
 /**
@@ -40,6 +41,7 @@ export function iyzico(config: IyzicoConfig): OrvaconConnector {
     }),
     refund: (ctx, input) => refund(transport, ctx, input),
     parseWebhook: (ctx, raw) => parseWebhook(transport, ctx, raw),
+    retrievePayment: (ctx, input) => retrievePayment(transport, ctx, input),
     $ERROR_CODES: IYZICO_ERROR_CODES,
   };
 }

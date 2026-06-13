@@ -289,6 +289,29 @@ export type RefundInput = {
   amount?: Money;
 };
 
+/** Input to {@link OrvaconConnector.retrievePayment}. */
+export type RetrievePaymentInput = {
+  paymentId: PaymentId;
+  gatewayReference: string;
+};
+
+/**
+ * The gateway's authoritative view of a payment, fetched by
+ * {@link OrvaconConnector.retrievePayment} for reconciliation.
+ *
+ * - `resolved: true` — the payment has settled at the gateway; the carried
+ *   {@link NormalizedEvent} is applied exactly as an inbound webhook would be.
+ * - `resolved: false` — the gateway still reports it pending (e.g. a 3DS
+ *   challenge never completed), so the core leaves the payment untouched. This
+ *   is the common, correct outcome for an abandoned payment — not an error.
+ * - `ok: false` — the retrieve call itself failed (network/gateway), distinct
+ *   from a pending payment; the core surfaces it and changes no state.
+ */
+export type ReconcileOutcome =
+  | { ok: true; resolved: true; event: NormalizedEvent }
+  | { ok: true; resolved: false }
+  | { ok: false; error: ConnectorError };
+
 /** A raw inbound webhook, before verification and normalization. */
 export type RawWebhook = {
   headers: Record<string, string>;
@@ -345,6 +368,14 @@ export interface OrvaconConnector {
   capture(ctx: ConnectorContext, input: CaptureInput): Promise<ConnectorResult>;
   refund(ctx: ConnectorContext, input: RefundInput): Promise<ConnectorResult>;
   parseWebhook(ctx: ConnectorContext, raw: RawWebhook): Promise<NormalizedEvent>;
+
+  /**
+   * Optionally fetch the gateway's authoritative view of a payment, for
+   * reconciliation. Present only on connectors whose gateway offers a
+   * retrieve/inquiry call — its presence *is* the capability, so the core gates
+   * `reconcile` on it (a connector without this method cannot be reconciled).
+   */
+  retrievePayment?(ctx: ConnectorContext, input: RetrievePaymentInput): Promise<ReconcileOutcome>;
 
   /** Optional check for gateway-side setup the connector cannot perform itself. */
   verifySetup?(ctx: ConnectorContext): Promise<SetupResult>;
