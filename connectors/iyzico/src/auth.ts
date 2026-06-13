@@ -46,8 +46,8 @@ export function generateRandomKey(): string {
 /**
  * Build the IYZWSv2 authentication headers for an Iyzico request.
  *
- * The scheme (verified against Iyzico's official HMACSHA256 auth docs, and
- * captured in `docs/connector-contract.md` §8):
+ * The scheme (verified against Iyzico's official IYZWSv2 / HMACSHA256
+ * authentication specification):
  * 1. `signature = HEX(HMAC-SHA256(randomKey + uriPath + body, secretKey))`.
  * 2. `authorization = "apiKey:<apiKey>&randomKey:<randomKey>&signature:<signature>"`.
  * 3. `Authorization: "IYZWSv2 " + base64(authorization)` (a single space after the scheme).
