@@ -89,8 +89,6 @@ export function createTransport(
 
     let parsed: IyzicoEnvelope & Record<string, unknown>;
     try {
-      // Serialization boundary (CODING_STANDARD rule 13): gateway JSON re-enters
-      // typed code here, once. The envelope shape is the documented contract.
       parsed = (await response.json()) as IyzicoEnvelope & Record<string, unknown>;
     } catch {
       return {
