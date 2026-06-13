@@ -19,11 +19,10 @@ const AUTH_PATH = "/payment/auth";
  * Iyzico's required buyer/address/basket subset is validated first, so a missing
  * field fails as `invalid_request` (with the field named) before the gateway call.
  *
- * @remarks Response-signature verification (and its trailing-zero price preimage)
- * is **Unverified** and intentionally not done here — it is cross-cutting with
- * capture/refund and lands with the dedicated signature step, confirmed against
- * the sandbox. For 3DS the trust boundary is the *finalize* response, not this
- * initialize step (so the unverified initialize signature is not load-bearing yet).
+ * @remarks For 3DS the trust boundary is the authenticated *finalize* response
+ * (an IYZWSv2 call over TLS), not the raw initialize or callback — confirmed
+ * against the sandbox — so the connector deliberately does not verify a response
+ * signature here.
  */
 export async function authorize(
   transport: IyzicoTransport,
@@ -197,12 +196,9 @@ function mapThreeDS(body: IyzicoSuccess): ConnectorResult {
 }
 
 /**
- * Map a direct (non-3DS) auth response.
- *
- * @remarks **Unverified** — Iyzico's `/payment/auth` completes (auth + capture)
- * immediately per the docs, so this returns `captured`; the precise auto-capture
- * vs authorize-only behavior is confirmed against the sandbox. The raw-card 3DS
- * path is the v1 first-class flow.
+ * Map a direct (non-3DS) auth response. Iyzico's `/payment/auth` completes
+ * (auth + capture) in one step, so this returns `captured` — confirmed against
+ * the sandbox. The raw-card 3DS path is the v1 first-class flow.
  */
 function mapDirect(body: IyzicoSuccess): ConnectorResult {
   return {
