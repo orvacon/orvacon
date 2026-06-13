@@ -1,4 +1,4 @@
 {
   "extends": "@orvacon/tsconfig/library.json",
-  "include": ["src"]
+  "include": ["src", "test"]
 }

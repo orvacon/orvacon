@@ -75,9 +75,13 @@
     "connectors/iyzico": {
       "name": "@orvacon/connector-iyzico",
       "version": "0.0.0",
+      "dependencies": {
+        "@orvacon/cryptokit": "workspace:*",
+      },
       "devDependencies": {
         "@orvacon/paykit": "workspace:*",
         "@orvacon/tsconfig": "workspace:*",
+        "@types/bun": "1.3.14",
         "typescript": "5.9.2",
       },
       "peerDependencies": {
