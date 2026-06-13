@@ -325,6 +325,29 @@ describe("capture", () => {
     }
     expect(connector.calls.capture).toBe(0);
   });
+
+  test("a separate capture is rejected for an auto-capturing connector (capability-gated)", async () => {
+    const connector = fakeConnector(
+      {}, // default capabilities → autoCapture: true
+      { authorize: () => ({ ok: true, status: "authorized", gatewayReference: "gw", raw: {} }) },
+    );
+    const { pay } = instance(connector);
+    const authorized = await pay.authorize({
+      idempotencyKey: idempotencyKey("k-autocap-auth"),
+      amount: money(10_000, "TRY"),
+      source: { type: "token", token: { token: "tok" } },
+    });
+    const outcome = await pay.capture({
+      idempotencyKey: idempotencyKey("k-autocap-cap"),
+      paymentId: requirePaymentId(authorized),
+    });
+    expect(outcome.result.ok).toBe(false);
+    if (!outcome.result.ok) {
+      expect(outcome.result.error.code).toBe("invalid_request");
+      expect(outcome.result.error.message).toContain("auto-captures");
+    }
+    expect(connector.calls.capture).toBe(0);
+  });
 });
 
 describe("refund", () => {
