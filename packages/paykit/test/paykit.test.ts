@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { parsePublicKey, parseSecretKey, verifyWebhook } from "@orvacon/cryptokit";
 import type {
   AuthorizeInput,
   ConnectorCapabilities,
@@ -9,20 +10,35 @@ import type {
   RawWebhook,
 } from "../src/connector";
 import {
+  createWebhookDeliverer,
+  WEBHOOK_ID_HEADER,
+  WEBHOOK_SIGNATURE_HEADER,
+  WEBHOOK_TIMESTAMP_HEADER,
+  type WebhookEvent,
+} from "../src/delivery";
+import {
   addMoney,
   assertTransition,
   canTransition,
   compareMoney,
+  eventId,
+  generateEventId,
   generatePaymentId,
   idempotencyKey,
   money,
   type OperationOutcome,
   orvacon,
+  type Payment,
   type PaymentId,
   paymentId,
+  type RetryConfig,
   subtractMoney,
 } from "../src/index";
 import { memoryAdapter } from "./memory-adapter";
+
+/** A real Ed25519 pair (cryptokit `generateSigningKeyPair`); the secret feeds `webhookSigningKey`, the public verifies deliveries. */
+const SIGNING_KEY = "orvsk_VvAbgdbdEscGzduADGtBo0dJF-apyQNky5VL3gr9uyg";
+const PUBLIC_KEY = "orvpk_h4B42ib_eqdmilRcRQ5I_wgNHclPulgkBz2CJQRX7Ck";
 
 const CAPABILITIES = {
   signatureEncoding: "hex",
@@ -87,7 +103,7 @@ function instance(connector: OrvaconConnector, db = memoryAdapter()) {
     pay: orvacon({
       database: db,
       connectors: [connector],
-      webhookSigningKey: "test-key",
+      webhookSigningKey: SIGNING_KEY,
     }),
   };
 }
@@ -134,6 +150,14 @@ describe("ids", () => {
     expect(id).toHaveLength(30);
     expect(() => paymentId("not-an-id")).toThrow(TypeError);
     expect(paymentId(id)).toBe(id);
+  });
+
+  test("generates evt_ ids and validates format", () => {
+    const id = generateEventId();
+    expect(id.startsWith("evt_")).toBe(true);
+    expect(id).toHaveLength(30);
+    expect(() => eventId("evt_short")).toThrow(TypeError);
+    expect(eventId(id)).toBe(id);
   });
 });
 
@@ -365,5 +389,277 @@ describe("config validation", () => {
         webhookSigningKey: "k",
       }),
     ).toThrow(TypeError);
+  });
+
+  test("rejects a malformed signing key at construction, not at first payment", () => {
+    const db = memoryAdapter();
+    expect(() =>
+      orvacon({
+        database: db,
+        connectors: [fakeConnector()],
+        webhookSigningKey: "not-an-orvsk-key",
+      }),
+    ).toThrow(TypeError);
+  });
+
+  test("rejects a non-http(s) or unparseable webhookUrl", () => {
+    const db = memoryAdapter();
+    for (const webhookUrl of ["ftp://example.test/hook", "not a url"]) {
+      expect(() =>
+        orvacon({
+          database: db,
+          connectors: [fakeConnector()],
+          webhookSigningKey: SIGNING_KEY,
+          webhookUrl,
+        }),
+      ).toThrow(TypeError);
+    }
+  });
+
+  test("accepts a valid https webhookUrl", () => {
+    const db = memoryAdapter();
+    expect(() =>
+      orvacon({
+        database: db,
+        connectors: [fakeConnector()],
+        webhookSigningKey: SIGNING_KEY,
+        webhookUrl: "https://example.test/orva/webhook",
+      }),
+    ).not.toThrow();
+  });
+});
+
+describe("webhook delivery", () => {
+  const silentLogger = {
+    debug() {},
+    info() {},
+    warn() {},
+    error() {},
+  };
+  const FIXED_NOW = 1_700_000_000_000;
+
+  function samplePayment(): Payment {
+    return {
+      id: generatePaymentId(FIXED_NOW),
+      status: "captured",
+      amount: money(10_000, "TRY"),
+      connectorId: "fake",
+      gatewayReference: "gw-ref-1",
+      createdAt: new Date(FIXED_NOW).toISOString(),
+      updatedAt: new Date(FIXED_NOW).toISOString(),
+    };
+  }
+
+  function sampleEvent(payment: Payment): NormalizedEvent {
+    return {
+      type: "payment.captured",
+      paymentId: payment.id,
+      gatewayReference: "gw-ref-1",
+      amount: money(10_000, "TRY"),
+      occurredAt: new Date(FIXED_NOW).toISOString(),
+      raw: { secret: "do-not-leak", big: "x".repeat(50) },
+    };
+  }
+
+  function headerValue(headers: Headers, name: string): string {
+    const value = headers.get(name);
+    if (value === null) {
+      throw new Error(`missing header ${name}`);
+    }
+    return value;
+  }
+
+  function harness(
+    responses: Array<number | "throw">,
+    opts: { retry?: RetryConfig; random?: () => number } = {},
+  ) {
+    const requests: { headers: Headers; body: string }[] = [];
+    const delays: number[] = [];
+    const errors: unknown[] = [];
+    const fetchImpl = async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      const status = responses[Math.min(requests.length, responses.length - 1)] ?? 200;
+      requests.push({ headers: new Headers(init?.headers), body: String(init?.body) });
+      if (status === "throw") {
+        throw new Error("network down");
+      }
+      return new Response(null, { status });
+    };
+    const deliverer = createWebhookDeliverer({
+      url: "https://hook.test/orva",
+      secretKey: parseSecretKey(SIGNING_KEY),
+      retry: opts.retry,
+      timeoutMs: 1_000,
+      report: (error) => errors.push(error),
+      logger: silentLogger,
+      fetch: fetchImpl,
+      sleep: async (ms) => {
+        delays.push(ms);
+      },
+      now: () => FIXED_NOW,
+      random: opts.random ?? (() => 0),
+    });
+    return { deliverer, requests, delays, errors };
+  }
+
+  test("signs a minimal, raw-free event that verifies against the public key", async () => {
+    const payment = samplePayment();
+    const { deliverer, requests } = harness([200]);
+    deliverer.deliver(payment, sampleEvent(payment));
+    await deliverer.idle();
+
+    expect(requests).toHaveLength(1);
+    const { headers, body } = requests[0] ?? { headers: new Headers(), body: "" };
+    expect(headers.get("content-type")).toBe("application/json");
+
+    const event = JSON.parse(body) as WebhookEvent;
+    expect(event.type).toBe("payment.captured");
+    expect(event.id.startsWith("evt_")).toBe(true);
+    expect(event.data.status).toBe("captured");
+    expect(event.data.amount).toEqual(money(10_000, "TRY"));
+    expect(event.data.gatewayReference).toBe("gw-ref-1");
+    // The gateway's raw payload never leaves the dev's database.
+    expect(body).not.toContain("do-not-leak");
+    expect("raw" in event).toBe(false);
+    expect("raw" in event.data).toBe(false);
+
+    const verification = await verifyWebhook(parsePublicKey(PUBLIC_KEY), {
+      id: headerValue(headers, WEBHOOK_ID_HEADER),
+      timestamp: Number(headerValue(headers, WEBHOOK_TIMESTAMP_HEADER)),
+      payload: body,
+      signature: headerValue(headers, WEBHOOK_SIGNATURE_HEADER),
+      now: Math.floor(FIXED_NOW / 1000),
+    });
+    expect(verification.valid).toBe(true);
+  });
+
+  test("returns from deliver before the POST, and idle drains it", async () => {
+    const payment = samplePayment();
+    const { deliverer, requests } = harness([200]);
+    deliverer.deliver(payment, sampleEvent(payment));
+    // Fire-and-forget: signing is async, so nothing has been sent synchronously.
+    expect(requests).toHaveLength(0);
+    await deliverer.idle();
+    expect(requests).toHaveLength(1);
+  });
+
+  test("retries a 500 then succeeds", async () => {
+    const payment = samplePayment();
+    const { deliverer, requests, delays, errors } = harness([500, 200], { retry: { retries: 3 } });
+    deliverer.deliver(payment, sampleEvent(payment));
+    await deliverer.idle();
+    expect(requests).toHaveLength(2);
+    expect(delays).toHaveLength(1);
+    expect(errors).toHaveLength(0);
+  });
+
+  test("treats a network error as transient and retries", async () => {
+    const payment = samplePayment();
+    const { deliverer, requests, errors } = harness(["throw", 200], { retry: { retries: 3 } });
+    deliverer.deliver(payment, sampleEvent(payment));
+    await deliverer.idle();
+    expect(requests).toHaveLength(2);
+    expect(errors).toHaveLength(0);
+  });
+
+  test("does not retry a permanent 4xx and reports the failure", async () => {
+    const payment = samplePayment();
+    const { deliverer, requests, delays, errors } = harness([400], { retry: { retries: 3 } });
+    deliverer.deliver(payment, sampleEvent(payment));
+    await deliverer.idle();
+    expect(requests).toHaveLength(1);
+    expect(delays).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+  });
+
+  test("gives up after exhausting retries on a persistent 503", async () => {
+    const payment = samplePayment();
+    const { deliverer, requests, delays, errors } = harness([503], { retry: { retries: 2 } });
+    deliverer.deliver(payment, sampleEvent(payment));
+    await deliverer.idle();
+    expect(requests).toHaveLength(3); // initial attempt + 2 retries
+    expect(delays).toHaveLength(2);
+    expect(errors).toHaveLength(1);
+  });
+
+  test("backoff grows exponentially, scales by jitter, and is clamped to the cap", async () => {
+    const payment = samplePayment();
+    const { deliverer, delays } = harness([503], {
+      retry: { retries: 3, minTimeoutMs: 100, maxTimeoutMs: 250 },
+      random: () => 0.5,
+    });
+    deliverer.deliver(payment, sampleEvent(payment));
+    await deliverer.idle();
+    // ceilings: min(250,100)=100, min(250,200)=200, min(250,400)=250 → floor(0.5 · ceiling)
+    expect(delays).toEqual([50, 100, 125]);
+  });
+
+  test("delivers a verifiable webhook end-to-end when webhookUrl is configured", async () => {
+    const calls: { url: string; headers: Headers; body: string }[] = [];
+    const realFetch = globalThis.fetch;
+    const stub = async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      calls.push({
+        url: String(input),
+        headers: new Headers(init?.headers),
+        body: String(init?.body),
+      });
+      return new Response(null, { status: 200 });
+    };
+    globalThis.fetch = stub as typeof fetch;
+    try {
+      const db = memoryAdapter();
+      const pay = orvacon({
+        database: db,
+        connectors: [fakeConnector()],
+        webhookSigningKey: SIGNING_KEY,
+        webhookUrl: "https://example.test/orva/webhook",
+      });
+      await pay.authorize({
+        idempotencyKey: idempotencyKey("k-deliver"),
+        amount: money(10_000, "TRY"),
+        source: { type: "token", token: { token: "tok" } },
+      });
+      await pay.drainWebhooks();
+
+      expect(calls).toHaveLength(1);
+      const call = calls[0];
+      if (!call) {
+        throw new Error("expected a delivery");
+      }
+      expect(call.url).toBe("https://example.test/orva/webhook");
+      const event = JSON.parse(call.body) as WebhookEvent;
+      expect(event.type).toBe("payment.captured");
+      expect(event.data.status).toBe("captured");
+      const verification = await verifyWebhook(parsePublicKey(PUBLIC_KEY), {
+        id: headerValue(call.headers, WEBHOOK_ID_HEADER),
+        timestamp: Number(headerValue(call.headers, WEBHOOK_TIMESTAMP_HEADER)),
+        payload: call.body,
+        signature: headerValue(call.headers, WEBHOOK_SIGNATURE_HEADER),
+      });
+      expect(verification.valid).toBe(true);
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  });
+
+  test("does not POST anything when no webhookUrl is configured", async () => {
+    let called = 0;
+    const realFetch = globalThis.fetch;
+    const stub = async (_input: string | URL, _init?: RequestInit): Promise<Response> => {
+      called++;
+      return new Response(null, { status: 200 });
+    };
+    globalThis.fetch = stub as typeof fetch;
+    try {
+      const { pay } = instance(fakeConnector());
+      await pay.authorize({
+        idempotencyKey: idempotencyKey("k-no-deliver"),
+        amount: money(1_000, "TRY"),
+        source: { type: "token", token: { token: "tok" } },
+      });
+      await pay.drainWebhooks();
+      expect(called).toBe(0);
+    } finally {
+      globalThis.fetch = realFetch;
+    }
   });
 });

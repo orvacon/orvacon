@@ -62,12 +62,50 @@ function encodeRandom(): string {
   return out;
 }
 
+/** The 26-char ULID body (48-bit timestamp + 80 bits of CSPRNG randomness) shared by every prefixed id. */
+function ulidBody(now: number): string {
+  return `${encodeTime(now)}${encodeRandom()}`;
+}
+
 /**
  * Generate a fresh payment id: `pay_` + ULID (48-bit timestamp + 80 bits of
  * CSPRNG randomness, Crockford base32). `now` is injectable for tests.
  */
 export function generatePaymentId(now: number = Date.now()): PaymentId {
-  return paymentId(`${ID_PREFIXES.payment}_${encodeTime(now)}${encodeRandom()}`);
+  return paymentId(`${ID_PREFIXES.payment}_${ulidBody(now)}`);
+}
+
+/**
+ * Identifier of an outbound webhook event — the `evt_…` id orvacon mints for
+ * every delivery it signs and sends to the dev's endpoint. It is both the
+ * event's `id` and the signed delivery id, and it is stable across redeliveries
+ * (delivery is at-least-once), so a receiver deduplicates retries on this value.
+ *
+ * Format: a prefixed ULID (`evt_01J…`, see {@link ID_PREFIXES}), the same scheme
+ * as {@link PaymentId} — time-ordered and recognizable at a glance in logs.
+ */
+export type EventId = Brand<string, "EventId">;
+
+const EVENT_ID_PATTERN = /^evt_[0-9A-HJKMNP-TV-Z]{26}$/;
+
+/**
+ * Validate and brand an event id (`evt_` + 26-char Crockford-base32 ULID).
+ *
+ * @throws TypeError if the value does not match the event id format.
+ */
+export function eventId(value: string): EventId {
+  if (!EVENT_ID_PATTERN.test(value)) {
+    throw new TypeError(`Event id must match ${EVENT_ID_PATTERN}, got "${value}"`);
+  }
+  return value as EventId;
+}
+
+/**
+ * Generate a fresh outbound-webhook event id: `evt_` + ULID. `now` is injectable
+ * for tests. Minted by the core for every webhook delivery; never by callers.
+ */
+export function generateEventId(now: number = Date.now()): EventId {
+  return eventId(`${ID_PREFIXES.event}_${ulidBody(now)}`);
 }
 
 /**
