@@ -121,28 +121,38 @@ export type NormalizedEventType =
   | "payment.failed"
   | "payment.voided";
 
-/**
- * A gateway webhook reduced to one shape the core understands. Whatever the
- * gateway sends, `parseWebhook` verifies it (with the gateway's own signature
- * scheme) and emits this.
- */
-export type NormalizedEvent = {
-  type: NormalizedEventType;
+/** Fields common to every {@link NormalizedEvent}, regardless of whether money moved. */
+export type NormalizedEventBase = {
   /** orvacon's own payment id (= the gateway conversationId / merchant_oid). */
   paymentId: PaymentId;
   /** The gateway's transaction reference. */
   gatewayReference: string;
-  /**
-   * The amount that moved in *this* event — for a refund this is the refunded
-   * delta, not the remaining or original total. The core sums refund deltas
-   * against the captured amount to decide `partially_refunded` vs `refunded`.
-   */
-  amount: Money;
   /** ISO 8601 timestamp. */
   occurredAt: string;
   /** The raw gateway payload, retained for audit. */
   raw: unknown;
 };
+
+/**
+ * A gateway webhook reduced to one shape the core understands. Whatever the
+ * gateway sends, `parseWebhook` verifies it (with the gateway's own signature
+ * scheme) and emits this.
+ *
+ * A discriminated union: `amount` is the *moved* amount and exists **only** on
+ * the value-moving events (`authorized` / `captured` / `refunded`). `failed` and
+ * `voided` move nothing and carry no amount — so "captured without an amount" is
+ * a compile error, not a runtime guard. For a refund, `amount` is the refunded
+ * delta (not the remaining or original total); the core sums refund deltas
+ * against the captured amount to decide `partially_refunded` vs `refunded`.
+ */
+export type NormalizedEvent =
+  | (NormalizedEventBase & {
+      type: "payment.authorized" | "payment.captured" | "payment.refunded";
+      amount: Money;
+    })
+  | (NormalizedEventBase & {
+      type: "payment.failed" | "payment.voided";
+    });
 
 /**
  * Raw card details passed through to the gateway.

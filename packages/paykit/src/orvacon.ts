@@ -269,14 +269,15 @@ export function orvacon(config: OrvaconConfig): Orvacon {
     amount: Money,
     raw: unknown,
   ): NormalizedEvent {
-    return {
-      type,
+    const base = {
       paymentId: payment.id,
       gatewayReference: payment.gatewayReference ?? "",
-      amount,
       occurredAt: new Date().toISOString(),
       raw,
     };
+    return type === "payment.failed" || type === "payment.voided"
+      ? { ...base, type }
+      : { ...base, type, amount };
   }
 
   /**
@@ -626,6 +627,31 @@ export function orvacon(config: OrvaconConfig): Orvacon {
     const to = webhookTarget(event, payment);
     if (payment.status === to || !canTransition(payment.status, to)) {
       return { event, payment, duplicate: true };
+    }
+    if (
+      (event.type === "payment.captured" || event.type === "payment.authorized") &&
+      (!sameCurrency(event.amount, payment.amount) ||
+        compareMoney(event.amount, payment.amount) !== 0)
+    ) {
+      report(
+        new Error(
+          `orvacon: webhook amount mismatch on payment "${payment.id}" — gateway reported ${event.amount.amount} ${event.amount.currency}, expected ${payment.amount.amount} ${payment.amount.currency}`,
+        ),
+      );
+      if (canTransition(payment.status, "failed")) {
+        const failed = await persistWithLedger(
+          payment.id,
+          payment.status,
+          "failed",
+          undefined,
+          undefined,
+        );
+        if (failed) {
+          await emit(failed, syntheticEvent("payment.failed", failed, payment.amount, event.raw));
+          return { event, payment: failed, duplicate: false };
+        }
+      }
+      return { event, payment, duplicate: false };
     }
     const movement =
       event.type === "payment.captured"
