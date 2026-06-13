@@ -224,6 +224,18 @@ describe("authorize", () => {
     expect(input.basket).toEqual(basket);
   });
 
+  test("stores the app-provided userId on the payment (owner for adapters/RLS)", async () => {
+    const connector = fakeConnector();
+    const { db, pay } = instance(connector);
+    const outcome = await pay.authorize({
+      idempotencyKey: idempotencyKey("k-owner"),
+      amount: money(1_000, "TRY"),
+      source: { type: "token", token: { token: "tok" } },
+      userId: "user-abc",
+    });
+    expect(db.payments.get(requirePaymentId(outcome))?.userId).toBe("user-abc");
+  });
+
   test("replaying a completed key returns the stored result without a second gateway call", async () => {
     const connector = fakeConnector();
     const { db, pay } = instance(connector);

@@ -80,6 +80,18 @@ export type Payment = {
   readonly refundedTotal?: Money;
   /** Id of the connector that owns this payment, e.g. `"iyzico"`. */
   readonly connectorId: string;
+  /**
+   * The payment's owner — the application's user id (e.g. a Supabase
+   * `auth.uid()`), supplied by the app. A generic ownership concept used for
+   * audit, support tooling, and per-user access control; adapters that enforce
+   * isolation (e.g. the Supabase adapter's row-level security) key off it, and
+   * adapters that don't simply ignore it.
+   *
+   * Nullable: a guest checkout has no owner. A null-owner payment is therefore
+   * visible only to the server (the service role / direct connection) and to no
+   * client user — a deliberate posture, since `auth.uid() = null` never matches.
+   */
+  readonly userId?: string;
   /** The gateway's transaction reference, once known. */
   readonly gatewayReference?: string;
   /** ISO 8601 timestamps. */
