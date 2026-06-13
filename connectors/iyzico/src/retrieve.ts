@@ -12,18 +12,20 @@ const DETAIL_PATH = "/payment/detail";
  * Fetch Iyzico's authoritative view of a payment for reconciliation, via the
  * Retrieve Payment endpoint (`/payment/detail`). The decision turns on
  * `paymentStatus` — verified against the sandbox: a captured payment reports
- * `SUCCESS` (with a populated `itemTransactions`), while a 3DS payment whose
- * callback never arrived reports `INIT_THREEDS` (empty `itemTransactions`). The
- * `phase` field is *not* discriminating — it is `AUTH` for both.
+ * `SUCCESS` (with a populated `itemTransactions`), an unfinalized 3DS payment
+ * reports `INIT_THREEDS`, and a failed-3DS one `CALLBACK_THREEDS` (both with an
+ * empty `itemTransactions`). The `phase` field is *not* discriminating — it is
+ * `AUTH` for all three.
  *
  * - `SUCCESS` → resolved `payment.captured`, amount from `paidPrice`.
  * - `INIT_THREEDS` (or any other non-terminal status) → `resolved: false`; the
  *   gateway has not settled, so the core leaves the payment untouched.
  * - a transport/gateway error → `ok: false`.
  *
- * @remarks **Unverified** — the `FAILURE → payment.failed` mapping is inferred,
- * not yet observed against the sandbox; an unrecognized status falls through to
- * `resolved: false` (safe: it never invents a settlement).
+ * @remarks **Unverified** — the `FAILURE → payment.failed` mapping is inferred:
+ * against the sandbox even a failed 3DS reports `CALLBACK_THREEDS` (treated as
+ * pending), so `FAILURE` itself was never observed. Any unrecognized status
+ * falls through to `resolved: false` (safe: it never invents a settlement).
  */
 export async function retrievePayment(
   transport: IyzicoTransport,

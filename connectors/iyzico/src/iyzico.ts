@@ -17,11 +17,10 @@ import { createTransport } from "./transport";
  * authorize, so the core gates a separate capture via `autoCapture: true` and
  * this fallback is reached only if that gate is bypassed.
  *
- * @remarks Several gateway specifics carry an `Unverified — confirm against
- * sandbox` note in the individual operations (trailing-zero price, callback
- * encoding, finalize shape); a sandbox smoke-test closes them. The async
- * X-IYZ-SIGNATURE-V3 notification and a dropped-callback reconciliation backstop
- * land after.
+ * @remarks The raw-card 3DS lifecycle (authorize → finalize → capture), refund,
+ * and reconcile are sandbox-verified. Still experimental or deferred: the token
+ * (stored-card) flow, multi-item partial refund, and the async
+ * X-IYZ-SIGNATURE-V3 notification (post-v1).
  */
 export function iyzico(config: IyzicoConfig): OrvaconConnector {
   const resolved = resolveIyzicoConfig(config);

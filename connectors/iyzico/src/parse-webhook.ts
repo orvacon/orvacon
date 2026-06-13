@@ -25,8 +25,8 @@ const FINALIZE_3DS_PATH = "/payment/3dsecure/auth";
  *   never guesses a result that could disagree with what Iyzico actually recorded.
  *
  * @remarks The async X-IYZ-SIGNATURE-V3 notification is a separate, deferred path
- * (post-v1); this handles the synchronous 3DS callback only. Exact callback field
- * encoding and the finalize response shape are `Unverified — confirm against sandbox`.
+ * (post-v1); this handles the synchronous 3DS callback only — its field encoding
+ * and the finalize response shape are sandbox-verified.
  */
 export async function parseWebhook(
   transport: IyzicoTransport,
