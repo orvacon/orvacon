@@ -123,6 +123,7 @@
         "orvacon": "dist/index.js",
       },
       "devDependencies": {
+        "@orvacon/adapter-supabase": "workspace:*",
         "@orvacon/cryptokit": "workspace:*",
         "@types/node": "^22.10.0",
         "typescript": "5.9.2",
