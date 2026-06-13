@@ -37,6 +37,12 @@ export type TransportResult =
   | { ok: true; body: IyzicoSuccess }
   | { ok: false; error: ConnectorError };
 
+/** A bound, signed-request function — the return of {@link createTransport}; the seam connector methods call. */
+export type IyzicoTransport = (
+  ctx: ConnectorContext,
+  req: IyzicoRequest,
+) => Promise<TransportResult>;
+
 /**
  * Bind a signed-request function to resolved config. Every Iyzico call goes
  * through here: it signs the request with IYZWSv2 ({@link buildIyzwsV2Headers}),
