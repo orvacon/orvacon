@@ -37,3 +37,9 @@ export * from "./money";
 export * from "./orvacon";
 export { type ConnectorId, type ConnectorRegistry, connectorId } from "./registry";
 export * from "./state";
+export {
+  type ReturnUrls,
+  toWebHandler,
+  type WebHandler,
+  type WebHandlerOptions,
+} from "./web";

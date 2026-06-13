@@ -36,6 +36,7 @@ import {
   paymentId,
   type RetryConfig,
   subtractMoney,
+  toWebHandler,
 } from "../src/index";
 import { memoryAdapter } from "./memory-adapter";
 
@@ -728,5 +729,53 @@ describe("webhook delivery", () => {
     } finally {
       globalThis.fetch = realFetch;
     }
+  });
+});
+
+describe("toWebHandler", () => {
+  const returnUrl = { success: "https://shop.test/done", failure: "https://shop.test/failed" };
+
+  test("redirects to success after a 3DS callback captures the payment", async () => {
+    let eventPaymentId = paymentId(generatePaymentId());
+    const connector = fakeConnector(
+      { autoCapture: false },
+      {
+        authorize: () => ({ ok: true, status: "requires_action", gatewayReference: "gw", raw: {} }),
+        webhookEvent: () => ({
+          type: "payment.captured",
+          paymentId: eventPaymentId,
+          gatewayReference: "gw",
+          amount: money(10_000, "TRY"),
+          occurredAt: new Date().toISOString(),
+          raw: {},
+        }),
+      },
+    );
+    const { pay } = instance(connector);
+    const authorized = await pay.authorize({
+      idempotencyKey: idempotencyKey("k-web"),
+      amount: money(10_000, "TRY"),
+      source: { type: "token", token: { token: "tok" } },
+      threeDSecure: true,
+    });
+    eventPaymentId = requirePaymentId(authorized);
+    const handler = toWebHandler(pay, { returnUrl });
+    const response = await handler(
+      new Request("https://app.test/api/orva/callback/fake", { method: "POST", body: "{}" }),
+      "fake",
+    );
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(returnUrl.success);
+  });
+
+  test("redirects to failure when the webhook cannot be handled", async () => {
+    const { pay } = instance(fakeConnector());
+    const handler = toWebHandler(pay, { returnUrl });
+    const response = await handler(
+      new Request("https://app.test/x", { method: "POST", body: "{}" }),
+      "nope",
+    );
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(returnUrl.failure);
   });
 });
