@@ -6,3 +6,4 @@ export {
   iyzwsV2Payload,
 } from "./auth";
 export type { FetchLike, IyzicoConfig, IyzicoEnvironment } from "./config";
+export { iyzico } from "./iyzico";
