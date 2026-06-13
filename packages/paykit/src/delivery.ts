@@ -53,7 +53,11 @@ export type WebhookEvent = {
      * {@link WebhookEvent.type}.
      */
     status: PaymentStatus;
-    /** The amount that moved in *this* event (e.g. the refunded delta), not the payment total. */
+    /**
+     * The amount that moved in *this* event (e.g. the refunded delta). For
+     * events that move nothing (`failed` / `voided`) it falls back to the
+     * payment's amount, so the field is always present for receivers.
+     */
     amount: Money;
     /** The gateway's transaction reference. */
     gatewayReference: string;
@@ -80,7 +84,7 @@ export function buildWebhookEvent(
     data: {
       paymentId: payment.id,
       status: payment.status,
-      amount: event.amount,
+      amount: "amount" in event ? event.amount : payment.amount,
       gatewayReference: payment.gatewayReference ?? event.gatewayReference,
       occurredAt: event.occurredAt,
     },
