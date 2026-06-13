@@ -12,6 +12,8 @@ import type {
 import { money } from "@orvacon/paykit";
 import type { Row, Sql, TransactionSql } from "postgres";
 
+export { supabaseSchema } from "./schema";
+
 /**
  * Options for {@link supabaseAdapter}.
  *
