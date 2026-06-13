@@ -1,6 +1,9 @@
 export type { Brand } from "./brand";
 export type {
+  Address,
   AuthorizeInput,
+  BasketItem,
+  Buyer,
   CaptureInput,
   Card,
   CardToken,

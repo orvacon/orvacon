@@ -172,6 +172,67 @@ export type CardToken = {
  */
 export type PaymentSource = { type: "card"; card: Card } | { type: "token"; token: CardToken };
 
+/**
+ * The person being charged. Optional on {@link AuthorizeInput}: a connector may
+ * require it — and a specific subset of its fields — for 3-D Secure, fraud
+ * scoring, or address verification. A connector that needs a field this type
+ * leaves optional (e.g. {@link Buyer.nationalId}) validates its presence and
+ * rejects the charge with `invalid_request` before calling the gateway.
+ */
+export type Buyer = {
+  /** The buyer's id in the merchant's own system. */
+  referenceId?: string;
+  name: string;
+  surname: string;
+  email: string;
+  /** Phone in E.164 form, e.g. `"+905350000000"`. */
+  phone?: string;
+  /**
+   * The buyer's government-issued national identity number, where a gateway
+   * requires it (e.g. Turkey's TCKN). Named for the concept, not any one
+   * country's field — gateways that do not need it ignore it.
+   */
+  nationalId?: string;
+  /** Free-form registration/contact address line. */
+  address?: string;
+  city?: string;
+  country?: string;
+  /** The buyer's IP at checkout; some gateways require it for fraud scoring. */
+  ip?: string;
+};
+
+/**
+ * A postal address. Optional on {@link AuthorizeInput}; some gateways require a
+ * billing address for AVS / 3-D Secure, and a shipping address for physical goods.
+ */
+export type Address = {
+  /** Name of the person at this address. */
+  contactName: string;
+  address: string;
+  city: string;
+  country: string;
+  /** Postal/ZIP code, where applicable. */
+  zipCode?: string;
+};
+
+/**
+ * One line of an itemized basket. Optional on {@link AuthorizeInput}; some
+ * gateways require the basket and check that the line-item total equals the
+ * charged amount. `price` is {@link Money} (integer minor units) so the total is
+ * summed currency-safely, never floated — and that equality check belongs to the
+ * connector, since not every gateway enforces it.
+ */
+export type BasketItem = {
+  /** The item's id in the merchant's catalog. */
+  referenceId: string;
+  name: string;
+  price: Money;
+  /** Primary category label, e.g. `"Electronics"`. */
+  category?: string;
+  /** Whether the item ships physically or is delivered digitally. */
+  type?: "physical" | "virtual";
+};
+
 /** Input to {@link OrvaconConnector.authorize}. */
 export type AuthorizeInput = {
   paymentId: PaymentId;
@@ -181,6 +242,14 @@ export type AuthorizeInput = {
   threeDSecure?: boolean;
   /** Where the gateway should send the user back after a challenge. */
   callbackUrl?: string;
+  /** The buyer being charged. Optional here; a connector may require it (and a subset of its fields). */
+  buyer?: Buyer;
+  /** Billing address. Optional here; required by some gateways for AVS / 3-D Secure. */
+  billingAddress?: Address;
+  /** Shipping address, for physically shipped goods. */
+  shippingAddress?: Address;
+  /** Itemized basket. Optional here; some gateways require it and reconcile its total against `amount`. */
+  basket?: readonly BasketItem[];
 };
 
 /**
