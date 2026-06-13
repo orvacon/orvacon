@@ -21,7 +21,12 @@ export type ConnectorCapabilities = {
   partialRefund: boolean;
   /** Whether the gateway returns a synchronous fraud status field. */
   fraudStatus: boolean;
-  /** Whether authorize captures in the same step by default. */
+  /**
+   * Whether authorize captures in the same step. When `true`, the core rejects a
+   * separate `capture()` as `invalid_request` — the gateway has no
+   * authorize-then-capture step to drive, so the capability gates the call rather
+   * than letting it reach the connector.
+   */
   autoCapture: boolean;
 };
 

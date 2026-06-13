@@ -467,6 +467,15 @@ export function orvacon(config: OrvaconConfig): Orvacon {
       return { paymentId: request.paymentId, result: loaded };
     }
     const { payment, connector, gatewayReference } = loaded;
+    if (connector.capabilities.autoCapture) {
+      return {
+        paymentId: payment.id,
+        result: fail(
+          "invalid_request",
+          `connector "${connector.id}" auto-captures at authorize and has no separate capture step`,
+        ),
+      };
+    }
     if (!canTransition(payment.status, "captured")) {
       return {
         paymentId: payment.id,
