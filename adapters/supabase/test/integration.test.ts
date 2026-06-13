@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { generatePaymentId, idempotencyKey, money } from "@orvacon/paykit";
 import postgres from "postgres";
-import { supabaseAdapter } from "../src/index";
+import { supabaseAdapter, supabaseSchema } from "../src/index";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -20,17 +20,24 @@ suite("supabaseAdapter (integration — requires DATABASE_URL)", () => {
 
   beforeAll(async () => {
     await sql`drop table if exists ledger, idempotency_keys, payments`;
-    await sql`create table payments (
-      id text primary key, status text not null, amount_minor bigint not null, currency text not null,
-      refunded_total_minor bigint, connector_id text not null, user_id text,
-      gateway_reference text, created_at timestamptz not null, updated_at timestamptz not null)`;
-    await sql`create table idempotency_keys (
-      key text primary key, payment_id text, status text not null, result jsonb,
-      created_at timestamptz not null, expires_at timestamptz not null)`;
-    await sql`create table ledger (
-      seq bigserial primary key, payment_id text not null, direction text not null, account text not null,
-      amount_minor bigint not null, currency text not null, occurred_at timestamptz not null,
-      prev_hash text not null, hash text not null unique)`;
+    // The generated RLS references Supabase's auth.uid() and its anon /
+    // authenticated / service_role roles. A real Supabase project has them; a
+    // bare Postgres does not, so stand them up to prove the schema applies.
+    await sql
+      .unsafe(`
+        create schema if not exists auth;
+        create or replace function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
+        do $$ begin
+          if not exists (select from pg_roles where rolname = 'anon') then create role anon; end if;
+          if not exists (select from pg_roles where rolname = 'authenticated') then create role authenticated; end if;
+          if not exists (select from pg_roles where rolname = 'service_role') then create role service_role bypassrls; end if;
+        end $$;
+      `)
+      .simple();
+    // Apply the *generated* migration — the exact SQL the CLI will write. The
+    // runtime tests below then run against the real schema + RLS; the superuser
+    // connection bypasses RLS, as a BYPASSRLS service_role would in production.
+    await sql.unsafe(supabaseSchema()).simple();
   });
 
   afterAll(async () => {
@@ -79,5 +86,21 @@ suite("supabaseAdapter (integration — requires DATABASE_URL)", () => {
     };
     expect((await db.insertIdempotencyKey(record)).inserted).toBe(true);
     expect((await db.insertIdempotencyKey(record)).inserted).toBe(false);
+  });
+
+  test("the ledger's unique(prev_hash) refuses a forked chain", async () => {
+    const append = (prev: string, hash: string) =>
+      sql`insert into ledger (payment_id, direction, account, amount_minor, currency, occurred_at, prev_hash, hash)
+          values ('p_fork', 'debit', 'gateway', 1, 'TRY', now(), ${prev}, ${hash})`;
+    await append("genesis", "hash_a");
+    // A second link off the same prev_hash is a fork; the constraint rejects it
+    // even if the advisory lock were somehow bypassed.
+    let forkRejected = false;
+    try {
+      await append("genesis", "hash_b");
+    } catch {
+      forkRejected = true;
+    }
+    expect(forkRejected).toBe(true);
   });
 });
