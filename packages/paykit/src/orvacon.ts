@@ -401,6 +401,10 @@ export function orvacon(config: OrvaconConfig): Orvacon {
         source: request.source,
         threeDSecure: request.threeDSecure,
         callbackUrl: request.callbackUrl,
+        buyer: request.buyer,
+        billingAddress: request.billingAddress,
+        shippingAddress: request.shippingAddress,
+        basket: request.basket,
       });
       if (!result.ok) {
         const failed = await db.updatePaymentStatus(id, "created", "failed");

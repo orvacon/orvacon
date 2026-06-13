@@ -17,8 +17,11 @@ import {
   type WebhookEvent,
 } from "../src/delivery";
 import {
+  type Address,
   addMoney,
   assertTransition,
+  type BasketItem,
+  type Buyer,
   canTransition,
   compareMoney,
   eventId,
@@ -53,6 +56,7 @@ const CAPABILITIES = {
 
 type FakeConnector = OrvaconConnector & {
   calls: { authorize: number; capture: number; refund: number };
+  authorizeInputs: AuthorizeInput[];
 };
 
 function fakeConnector(
@@ -63,13 +67,16 @@ function fakeConnector(
   } = {},
 ): FakeConnector {
   const calls = { authorize: 0, capture: 0, refund: 0 };
+  const authorizeInputs: AuthorizeInput[] = [];
   return {
     id: "fake",
     version: "0.0.0",
     capabilities: { ...CAPABILITIES, ...overrides },
     calls,
+    authorizeInputs,
     async authorize(_ctx: ConnectorContext, input: AuthorizeInput): Promise<ConnectorResult> {
       calls.authorize++;
+      authorizeInputs.push(input);
       return (
         behavior.authorize?.(input) ?? {
           ok: true,
@@ -177,6 +184,43 @@ describe("authorize", () => {
     expect(db.ledger[0]?.prevHash).toBe("0".repeat(64));
     expect(db.ledger[1]?.prevHash).toBe(db.ledger[0]?.hash);
     expect(db.idempotency.get("k-1")?.status).toBe("completed");
+  });
+
+  test("forwards buyer, addresses, and basket through to the connector", async () => {
+    const connector = fakeConnector();
+    const { pay } = instance(connector);
+    const buyer: Buyer = {
+      name: "Ada",
+      surname: "Lovelace",
+      email: "ada@example.test",
+      nationalId: "11111111111",
+    };
+    const billingAddress: Address = {
+      contactName: "Ada Lovelace",
+      address: "1 Analytical St",
+      city: "Istanbul",
+      country: "TR",
+    };
+    const basket: BasketItem[] = [
+      { referenceId: "sku-1", name: "Widget", price: money(10_000, "TRY"), type: "virtual" },
+    ];
+    await pay.authorize({
+      idempotencyKey: idempotencyKey("k-ctx"),
+      amount: money(10_000, "TRY"),
+      source: { type: "token", token: { token: "tok" } },
+      buyer,
+      billingAddress,
+      shippingAddress: billingAddress,
+      basket,
+    });
+    const input = connector.authorizeInputs[0];
+    if (!input) {
+      throw new Error("expected an authorize input");
+    }
+    expect(input.buyer).toEqual(buyer);
+    expect(input.billingAddress).toEqual(billingAddress);
+    expect(input.shippingAddress).toEqual(billingAddress);
+    expect(input.basket).toEqual(basket);
   });
 
   test("replaying a completed key returns the stored result without a second gateway call", async () => {
