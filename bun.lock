@@ -103,6 +103,7 @@
         "orvacon": "dist/index.js",
       },
       "devDependencies": {
+        "@orvacon/cryptokit": "workspace:*",
         "@types/node": "^22.10.0",
         "typescript": "5.9.2",
       },

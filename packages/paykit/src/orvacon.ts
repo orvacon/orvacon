@@ -1,3 +1,4 @@
+import { parseSecretKey } from "@orvacon/cryptokit";
 import type {
   AuthorizeInput,
   ConnectorContext,
@@ -11,6 +12,7 @@ import type {
   RawWebhook,
 } from "./connector";
 import type { DatabaseAdapter, TransactionScope } from "./database";
+import { createWebhookDeliverer, type RetryConfig } from "./delivery";
 import { generatePaymentId, type IdempotencyKey, type Idempotent, type PaymentId } from "./ids";
 import { buildLedgerPair, LEDGER_GENESIS } from "./ledger";
 import type { Money } from "./money";
@@ -38,13 +40,6 @@ export type HookHandler = (payment: Payment, event: NormalizedEvent) => void | P
  */
 export type Hooks = Partial<Record<NormalizedEventType, HookHandler>>;
 
-/** Retry/backoff policy for transient gateway failures. */
-export type RetryConfig = {
-  retries?: number;
-  minTimeoutMs?: number;
-  maxTimeoutMs?: number;
-};
-
 /**
  * Configuration for an orvacon instance. Validated fail-fast in {@link orvacon};
  * missing or invalid config throws at setup, not at the first payment.
@@ -65,19 +60,36 @@ export type OrvaconConfig = {
   /** Per-gateway-call timeout in milliseconds. Default 30 000. */
   timeout?: number;
   /**
-   * Retry policy for transient gateway failures.
+   * Retry policy for transient failures, applied to outgoing webhook delivery:
+   * a 5xx / 429 / 408 / network failure is retried up to `retries` times with
+   * exponential backoff + full jitter; any other 4xx is permanent. See
+   * {@link RetryConfig} for the defaults.
    *
-   * @remarks Validated but not yet applied — automatic retries land together
-   * with outgoing-webhook delivery, where the same backoff machinery is shared.
+   * @remarks Automatic retry of transient *gateway* calls reuses this same
+   * machinery and lands with the connector work; today only webhook delivery
+   * consumes it.
    */
   retry?: RetryConfig;
   /**
-   * Ed25519 private key used to sign every webhook orvacon sends to the dev's
-   * endpoint. Required — there is no unsigned-webhook mode. Generate a pair
-   * with the CLI and load the private half from an environment variable.
+   * Where orvacon POSTs its signed lifecycle webhooks. Optional: with no URL,
+   * delivery is off and only in-process {@link Hooks} fire. An invalid or
+   * non-`http(s)` URL is rejected fail-fast at construction.
    *
-   * @remarks Validated at construction; outgoing webhook delivery itself ships
-   * with the cryptokit implementation.
+   * @remarks At-least-once and fire-and-forget — the payment flow never blocks
+   * on the endpoint, and a delivery that exhausts its retries is surfaced
+   * through {@link OrvaconConfig.onError}. v1 keeps no persistent outbox, so an
+   * in-flight retry is lost on a crash or serverless freeze; await
+   * {@link Orvacon.drainWebhooks} before a short-lived process exits. Durable
+   * redelivery lands with the event-storage adapter methods.
+   */
+  webhookUrl?: string;
+  /**
+   * Ed25519 private key (`orvsk_…`) used to sign every webhook orvacon sends.
+   * Required — there is no unsigned-webhook mode. Generate a pair with
+   * `npx orvacon keys` and load the secret half from an environment variable.
+   *
+   * Parsed with cryptokit's `parseSecretKey` at construction, so a malformed
+   * key fails fast at setup rather than at the first delivery.
    */
   webhookSigningKey: string;
 };
@@ -137,6 +149,15 @@ export interface Orvacon {
    * an unknown payment — the framework adapter maps those to 4xx responses.
    */
   handleWebhook(connectorId: string, raw: RawWebhook): Promise<WebhookOutcome>;
+  /**
+   * Await every in-flight outbound webhook delivery, including pending retries.
+   * Outgoing delivery is fire-and-forget — the mutating methods return without
+   * waiting on the dev's endpoint — so a long-running server never needs this.
+   * A **short-lived runtime must await it before exiting or freezing** (scripts,
+   * CLIs, serverless handlers), or a delivery still in flight is dropped. A
+   * no-op when no `webhookUrl` is configured.
+   */
+  drainWebhooks(): Promise<void>;
 }
 
 const noopLogger = {
@@ -173,6 +194,17 @@ function validateConfig(config: OrvaconConfig): void {
   if (config.timeout !== undefined && (!Number.isFinite(config.timeout) || config.timeout <= 0)) {
     throw new TypeError("orvacon: config.timeout must be a positive number of milliseconds");
   }
+  if (config.webhookUrl !== undefined) {
+    let parsed: URL | undefined;
+    try {
+      parsed = typeof config.webhookUrl === "string" ? new URL(config.webhookUrl) : undefined;
+    } catch {
+      parsed = undefined;
+    }
+    if (!parsed || (parsed.protocol !== "http:" && parsed.protocol !== "https:")) {
+      throw new TypeError("orvacon: config.webhookUrl must be an http(s) URL");
+    }
+  }
 }
 
 /**
@@ -187,6 +219,17 @@ export function orvacon(config: OrvaconConfig): Orvacon {
   const hooks = config.hooks ?? {};
   const onError = config.onError;
   const timeoutMs = config.timeout ?? DEFAULT_TIMEOUT_MS;
+  const signingKey = parseSecretKey(config.webhookSigningKey);
+  const deliverer = config.webhookUrl
+    ? createWebhookDeliverer({
+        url: config.webhookUrl,
+        secretKey: signingKey,
+        retry: config.retry,
+        timeoutMs,
+        report,
+        logger,
+      })
+    : undefined;
 
   function makeContext(): ConnectorContext {
     return { logger, signal: AbortSignal.timeout(timeoutMs), classifyError };
@@ -208,6 +251,16 @@ export function orvacon(config: OrvaconConfig): Orvacon {
     } catch (error) {
       report(error);
     }
+  }
+
+  /**
+   * Surface a persisted transition: run the in-process hook (awaited — the
+   * ordering contract callers rely on) and then schedule the signed outbound
+   * webhook (fire-and-forget, so a slow endpoint never blocks the payment flow).
+   */
+  async function emit(payment: Payment, event: NormalizedEvent): Promise<void> {
+    await fireHook(payment, event);
+    deliverer?.deliver(payment, event);
   }
 
   function syntheticEvent(
@@ -352,7 +405,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
       if (!result.ok) {
         const failed = await db.updatePaymentStatus(id, "created", "failed");
         if (failed) {
-          await fireHook(
+          await emit(
             failed,
             syntheticEvent("payment.failed", failed, request.amount, result.error.raw),
           );
@@ -378,7 +431,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
       );
       if (updated) {
         const type = result.status === "captured" ? "payment.captured" : "payment.authorized";
-        await fireHook(updated, syntheticEvent(type, updated, request.amount, result.raw));
+        await emit(updated, syntheticEvent(type, updated, request.amount, result.raw));
       }
       return { paymentId: id, result };
     });
@@ -452,10 +505,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
         kind: "capture",
       });
       if (updated) {
-        await fireHook(
-          updated,
-          syntheticEvent("payment.captured", updated, captureAmount, result.raw),
-        );
+        await emit(updated, syntheticEvent("payment.captured", updated, captureAmount, result.raw));
       } else {
         logger.warn(`capture race on payment "${payment.id}": state moved concurrently`);
       }
@@ -522,7 +572,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
         { amount: delta, kind: "refund" },
       );
       if (updated) {
-        await fireHook(updated, syntheticEvent("payment.refunded", updated, delta, result.raw));
+        await emit(updated, syntheticEvent("payment.refunded", updated, delta, result.raw));
       } else {
         logger.warn(`refund race on payment "${payment.id}": state moved concurrently`);
       }
@@ -586,9 +636,15 @@ export function orvacon(config: OrvaconConfig): Orvacon {
       const current = await db.getPayment(payment.id);
       return { event, payment: current ?? payment, duplicate: true };
     }
-    await fireHook(updated, event);
+    await emit(updated, event);
     return { event, payment: updated, duplicate: false };
   }
 
-  return { authorize, capture, refund, handleWebhook };
+  return {
+    authorize,
+    capture,
+    refund,
+    handleWebhook,
+    drainWebhooks: deliverer ? () => deliverer.idle() : () => Promise.resolve(),
+  };
 }

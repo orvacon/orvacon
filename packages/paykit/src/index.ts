@@ -22,6 +22,13 @@ export type {
 } from "./connector";
 export { isRetryableError } from "./connector";
 export * from "./database";
+export {
+  type RetryConfig,
+  WEBHOOK_ID_HEADER,
+  WEBHOOK_SIGNATURE_HEADER,
+  WEBHOOK_TIMESTAMP_HEADER,
+  type WebhookEvent,
+} from "./delivery";
 export * from "./ids";
 export * from "./money";
 export * from "./orvacon";
