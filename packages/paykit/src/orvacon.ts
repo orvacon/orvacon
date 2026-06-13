@@ -102,7 +102,11 @@ export type OrvaconConfig = {
  * connector is registered.
  */
 export type AuthorizeRequest = Idempotent<
-  Omit<AuthorizeInput, "paymentId"> & { connectorId?: string }
+  Omit<AuthorizeInput, "paymentId"> & {
+    connectorId?: string;
+    /** The payment's owner (the app's user id). Stored on the {@link Payment}; never sent to the connector. */
+    userId?: string;
+  }
 >;
 
 /**
@@ -393,6 +397,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
         status: "created",
         amount: request.amount,
         connectorId: connector.id,
+        userId: request.userId,
         createdAt: nowIso,
         updatedAt: nowIso,
       });
