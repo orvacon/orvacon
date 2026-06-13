@@ -1,5 +1,6 @@
 import type {
   AuthorizeInput,
+  ConnectorError,
   ConnectorResult,
   Logger,
   NormalizedEvent,
@@ -132,6 +133,21 @@ export type WebhookOutcome = {
 };
 
 /**
+ * Outcome of {@link Orvacon.reconcile}.
+ * - `resolved: true` — the gateway had settled and the payment was advanced (and
+ *   ledgered) to match.
+ * - `resolved: false` — the gateway still reports it pending, so the payment is
+ *   left unchanged (the correct outcome for an abandoned payment).
+ * - `ok: false` — reconciliation could not run (unknown payment, a connector
+ *   that cannot retrieve, a payment not awaiting reconciliation, or the retrieve
+ *   call itself failed); no state changed.
+ */
+export type ReconcileResult =
+  | { ok: true; resolved: true; payment: Payment; event: NormalizedEvent }
+  | { ok: true; resolved: false; payment: Payment }
+  | { ok: false; error: ConnectorError };
+
+/**
  * The application-facing orchestrator. The app calls these without knowing
  * which gateway is behind a payment.
  */
@@ -146,6 +162,21 @@ export interface Orvacon {
    * an unknown payment — the framework adapter maps those to 4xx responses.
    */
   handleWebhook(connectorId: string, raw: RawWebhook): Promise<WebhookOutcome>;
+  /**
+   * Reconcile a payment stuck at `requires_action` against the gateway's
+   * authoritative state — the backstop for the narrow window where the gateway
+   * settled (money moved) but the core crashed before persisting it. Reads the
+   * truth via the connector's `retrievePayment` and advances the payment only if
+   * the gateway says it settled; a still-pending payment is left untouched. A
+   * connector without `retrievePayment` cannot be reconciled.
+   *
+   * @remarks v1 resolves only *settled-but-unreflected* payments; it does not
+   * expire or resolve a payment the gateway still reports pending. An abandoned
+   * 3DS challenge stays `requires_action` until it settles or is handled out of
+   * band — there is no automatic expiry. (The gateway captures at finalize, so a
+   * never-finalized 3DS payment moved no money: leaving it untouched is correct.)
+   */
+  reconcile(paymentId: PaymentId): Promise<ReconcileResult>;
   /**
    * Await every in-flight outbound webhook delivery, including pending retries.
    * Outgoing delivery is fire-and-forget — the mutating methods return without

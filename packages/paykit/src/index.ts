@@ -20,7 +20,9 @@ export type {
   PaymentSource,
   RawError,
   RawWebhook,
+  ReconcileOutcome,
   RefundInput,
+  RetrievePaymentInput,
   SetupResult,
 } from "./connector";
 export { isRetryableError } from "./connector";
