@@ -18,7 +18,7 @@ const API_KEY = process.env.IYZICO_API_KEY;
 const SECRET_KEY = process.env.IYZICO_SECRET_KEY;
 const suite = API_KEY && SECRET_KEY ? describe : describe.skip;
 
-// Iyzico's public sandbox test card (documented; not a real PAN).
+// Iyzico's public sandbox test cards (documented; not real PANs).
 const CARD_3DS_SUCCESS = {
   number: "5526080000000006",
   expiryMonth: "12",
@@ -26,6 +26,10 @@ const CARD_3DS_SUCCESS = {
   cvc: "123",
   holderName: "John Doe",
 };
+// Reported to fail 3DS at the bank (mdStatus != 1).
+const CARD_3DS_FAIL = { ...CARD_3DS_SUCCESS, number: "4131111111111117" };
+// Authorizes/captures, but the gateway declines the refund.
+const CARD_REFUND_DECLINE = { ...CARD_3DS_SUCCESS, number: "5406670000000009" };
 const CALLBACK_URL = "https://orvacon.example/callback";
 // The mock confirm page prints this OTP; it is the gateway's value, not a guess.
 const MOCK_OTP = "283126";
@@ -85,12 +89,12 @@ async function complete3DS(html: string, callbackUrl: string): Promise<Record<st
   throw new Error("3DS chain did not reach the merchant callback in 6 hops");
 }
 
-function buildInput(): AuthorizeInput {
+function buildInput(card = CARD_3DS_SUCCESS): AuthorizeInput {
   const amount = money(1000, "TRY"); // 10.00 TRY
   return {
     paymentId: generatePaymentId(),
     amount,
-    source: { type: "card", card: CARD_3DS_SUCCESS },
+    source: { type: "card", card },
     threeDSecure: true,
     callbackUrl: CALLBACK_URL,
     buyer: {
@@ -170,6 +174,53 @@ suite("iyzico sandbox smoke (requires IYZICO_API_KEY / IYZICO_SECRET_KEY)", () =
     expect(refunded.ok).toBe(true);
     if (refunded.ok) {
       expect(refunded.status).toBe("refunded");
+    }
+  });
+
+  test("3DS-fail card → payment.failed (mdStatus != 1)", async () => {
+    const connector = iyzico({ apiKey: API_KEY ?? "", secretKey: SECRET_KEY ?? "" });
+    const auth = await connector.authorize(ctx, buildInput(CARD_3DS_FAIL));
+    expect(auth.ok).toBe(true);
+    if (!auth.ok || auth.action?.type !== "html") {
+      return;
+    }
+    const cb = await complete3DS(auth.action.content, CALLBACK_URL);
+    console.log("\n3DS-fail callback mdStatus:", cb.mdStatus);
+    expect(cb.mdStatus).not.toBe("1");
+    const event = await connector.parseWebhook(ctx, {
+      headers: {},
+      body: new URLSearchParams(cb).toString(),
+    });
+    expect(event.type).toBe("payment.failed");
+  });
+
+  test("refund-decline card → refund returns a 'declined' error", async () => {
+    const connector = iyzico({ apiKey: API_KEY ?? "", secretKey: SECRET_KEY ?? "" });
+    const auth = await connector.authorize(ctx, buildInput(CARD_REFUND_DECLINE));
+    expect(auth.ok).toBe(true);
+    if (!auth.ok || auth.action?.type !== "html") {
+      return;
+    }
+    const cb = await complete3DS(auth.action.content, CALLBACK_URL);
+    const captured = await connector.parseWebhook(ctx, {
+      headers: {},
+      body: new URLSearchParams(cb).toString(),
+    });
+    expect(captured.type).toBe("payment.captured");
+    if (captured.type !== "payment.captured") {
+      return;
+    }
+    const refund = await connector.refund(ctx, {
+      paymentId: captured.paymentId,
+      gatewayReference: captured.gatewayReference,
+      amount: money(1000, "TRY"),
+    });
+    console.log("\nrefund-decline:", refund.ok ? refund.status : refund.error.code);
+    expect(refund.ok).toBe(false);
+    // 10220 (errorGroup DECLINED) is now mapped — a real decline classifies as
+    // "declined", not the safe-default "unknown".
+    if (!refund.ok) {
+      expect(refund.error.code).toBe("declined");
     }
   });
 });
