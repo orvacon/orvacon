@@ -5,12 +5,16 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "files": [
     "dist"
   ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/fix-esm-extensions.mjs dist",
     "check-types": "tsc --noEmit",
     "test": "bun test"
   },

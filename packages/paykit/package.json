@@ -5,13 +5,20 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./connector": "./src/connector.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./connector": {
+      "types": "./dist/connector.d.ts",
+      "import": "./dist/connector.js"
+    }
   },
   "files": [
     "dist"
   ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/fix-esm-extensions.mjs dist",
     "check-types": "tsc --noEmit",
     "test": "bun test"
   },
