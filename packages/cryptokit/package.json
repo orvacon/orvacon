@@ -1,6 +1,6 @@
 {
   "name": "@orvacon/cryptokit",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Zero-dependency cryptographic primitives for orvacon: Ed25519 signing, HMAC-SHA256, SHA-256, HKDF, timing-safe comparison, and the signed-webhook envelope. Web Crypto only.",
   "license": "MIT",
   "type": "module",

@@ -1,6 +1,7 @@
 {
   "name": "@orvacon/connector-paytr",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "private": true,
   "description": "PayTR gateway connector for orvacon.",
   "license": "MIT",
   "type": "module",
