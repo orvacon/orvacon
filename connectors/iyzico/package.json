@@ -1,6 +1,6 @@
 {
   "name": "@orvacon/connector-iyzico",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Iyzico gateway connector for orvacon.",
   "license": "MIT",
   "type": "module",
@@ -22,10 +22,10 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@orvacon/cryptokit": "workspace:*"
+    "@orvacon/cryptokit": "^0.1.1"
   },
   "peerDependencies": {
-    "@orvacon/paykit": "workspace:^"
+    "@orvacon/paykit": "^0.1.1"
   },
   "devDependencies": {
     "@orvacon/paykit": "workspace:*",
@@ -35,5 +35,12 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "orvacon",
+    "payments",
+    "payment-orchestration",
+    "typescript",
+    "iyzico"
+  ]
 }

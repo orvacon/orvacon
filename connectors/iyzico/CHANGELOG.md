@@ -1,5 +1,14 @@
 # @orvacon/connector-iyzico
 
+## 0.1.1
+
+### Patch Changes
+
+- Fix the published packages so they install. Internal `@orvacon/*` dependencies were left as the `workspace:` protocol, which npm cannot resolve — the libraries were uninstallable. They now use explicit semver ranges. Also add a per-package README so the npm page is not bare.
+- Updated dependencies
+  - @orvacon/paykit@0.1.1
+  - @orvacon/cryptokit@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes
