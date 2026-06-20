@@ -1,6 +1,6 @@
 {
   "name": "@orvacon/adapter-supabase",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Supabase database adapter for orvacon — direct Postgres connection (transactions, advisory locks) + default-deny RLS generation.",
   "license": "MIT",
   "type": "module",
@@ -19,7 +19,7 @@
     "test": "bun test"
   },
   "peerDependencies": {
-    "@orvacon/paykit": "workspace:^",
+    "@orvacon/paykit": "^0.1.1",
     "postgres": "^3"
   },
   "devDependencies": {
@@ -31,5 +31,12 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "orvacon",
+    "payments",
+    "payment-orchestration",
+    "typescript",
+    "iyzico"
+  ]
 }

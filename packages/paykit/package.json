@@ -1,6 +1,6 @@
 {
   "name": "@orvacon/paykit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Provider-agnostic, TypeScript-first payment orchestration core.",
   "license": "MIT",
   "type": "module",
@@ -23,7 +23,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@orvacon/cryptokit": "workspace:*"
+    "@orvacon/cryptokit": "^0.1.1"
   },
   "devDependencies": {
     "@orvacon/tsconfig": "workspace:*",
@@ -32,5 +32,12 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "orvacon",
+    "payments",
+    "payment-orchestration",
+    "typescript",
+    "iyzico"
+  ]
 }

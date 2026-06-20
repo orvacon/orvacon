@@ -1,11 +1,10 @@
-# orvacon (CLI)
+# orvacon
 
-orvacon CLI — provider-agnostic, TypeScript-first payment orchestration.
-
-> **Status:** Placeholder release (`0.0.1`). Published to reserve the name; real commands are not here yet.
+The **[orvacon](https://github.com/orvacon/orvacon)** command-line tool.
 
 ```bash
-npx orvacon --help
+npx orvacon keys       # generate an Ed25519 webhook signing key pair
+npx orvacon generate   # print the database schema + default-deny RLS migration
 ```
 
-Learn more: [orvacon.com](https://orvacon.com)
+See the [orvacon guide](https://github.com/orvacon/orvacon#readme) for the full install + usage walkthrough.
