@@ -1,6 +1,7 @@
 {
   "name": "@orvacon/adapter-drizzle",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "private": true,
   "description": "Generic Postgres (Drizzle) database adapter for orvacon.",
   "license": "MIT",
   "type": "module",

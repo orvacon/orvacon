@@ -1,6 +1,7 @@
 {
   "name": "@orvacon/testkit",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "private": true,
   "description": "Fake connector and test cards for orvacon (gateway-free testing).",
   "license": "MIT",
   "type": "module",

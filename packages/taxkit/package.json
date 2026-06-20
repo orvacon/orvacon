@@ -1,6 +1,7 @@
 {
   "name": "@orvacon/taxkit",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "private": true,
   "description": "Tax/VAT calculation for orvacon.",
   "license": "MIT",
   "type": "module",

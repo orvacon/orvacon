@@ -1,6 +1,6 @@
 {
   "name": "@orvacon/adapter-supabase",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Supabase database adapter for orvacon — direct Postgres connection (transactions, advisory locks) + default-deny RLS generation.",
   "license": "MIT",
   "type": "module",
