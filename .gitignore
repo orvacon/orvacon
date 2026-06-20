@@ -44,4 +44,5 @@ skills-lock.json
 
 # Internal docs — never pushed to the public repo (founder-internal context / strategy).
 # Stays on disk, visible to the agent, never pushed. Whole folder (md + svg).
-docs/
+# Root-anchored so it only hides the top-level docs/ and never catches apps/docs.
+/docs/
