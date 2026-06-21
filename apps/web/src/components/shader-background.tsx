@@ -96,7 +96,8 @@ export function ShaderBackground({ className }: { className?: string }) {
     gl.attachShader(program, vert);
     gl.attachShader(program, frag);
     gl.linkProgram(program);
-    gl.useProgram(program);
+    const activateProgram = gl.useProgram.bind(gl);
+    activateProgram(program);
 
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -162,5 +163,5 @@ export function ShaderBackground({ className }: { className?: string }) {
     };
   }, []);
 
-  return <canvas ref={ref} aria-hidden="true" className={className} />;
+  return <canvas ref={ref} className={className} />;
 }
