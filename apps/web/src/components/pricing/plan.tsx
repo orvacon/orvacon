@@ -28,7 +28,7 @@ const features = [
 
 export function Plan() {
   return (
-    <section className="px-[30px] pb-[84px]">
+    <section className="px-[clamp(24px,3.4vw,46px)] pb-[84px]">
       <div className="relative mx-auto max-w-[560px] overflow-hidden rounded-[20px] border-[1.5px] border-[var(--accent-line)] bg-bg-2">
         <div
           aria-hidden="true"

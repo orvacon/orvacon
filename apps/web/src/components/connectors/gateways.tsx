@@ -68,7 +68,7 @@ const gateways: ConnectorItem[] = [
 
 export function Gateways() {
   return (
-    <section className="px-[30px] pb-[84px]">
+    <section className="px-[clamp(24px,3.4vw,46px)] pb-[84px]">
       <SectionBar index="01 — Payment gateways" right="1 verified · 2 on the roadmap" />
       <CardGrid>
         {gateways.map((item) => (

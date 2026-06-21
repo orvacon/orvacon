@@ -137,7 +137,7 @@ const fits: Fit[] = [
 
 export function Fits() {
   return (
-    <section className="px-[30px] pb-[84px]">
+    <section className="px-[clamp(24px,3.4vw,46px)] pb-[84px]">
       <div className="orv-eyebrow mb-7">A good fit for</div>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-[18px]">
         {fits.map((fit) => (

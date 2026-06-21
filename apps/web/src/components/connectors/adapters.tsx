@@ -57,7 +57,7 @@ const adapters: ConnectorItem[] = [
 
 export function Adapters() {
   return (
-    <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[84px]">
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[84px]">
       <SectionBar index="02 — Database & framework adapters" right="bring your own stack" />
       <CardGrid>
         {adapters.map((item) => (
