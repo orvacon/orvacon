@@ -1,4 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <rect width="24" height="24" rx="5" fill="#08080A" />
-  <text x="12" y="12" fill="#15B886" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" text-anchor="middle" dominant-baseline="central">o</text>
+  <circle cx="12" cy="12" r="6" fill="none" stroke="#15B886" stroke-width="2.4" />
 </svg>
