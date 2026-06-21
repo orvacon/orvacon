@@ -22,6 +22,15 @@ export const metadata: Metadata = {
   },
   description:
     "Provider-agnostic, TypeScript-first payment orchestration. One clean API, any gateway — Iyzico, PayTR and bank virtual POS plug in as connectors behind a single type-safe interface.",
+  openGraph: {
+    type: "website",
+    siteName: "orvacon",
+    url: "https://orvacon.com",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function Layout({ children }: LayoutProps<"/">) {
