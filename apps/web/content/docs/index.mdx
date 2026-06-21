@@ -1,13 +1,19 @@
 ---
-title: Hello World
-description: Your first document
+title: Documentation
+description: Provider-agnostic, TypeScript-first payment orchestration.
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+orvacon is a provider-agnostic payment orchestration library. Gateways — Iyzico, PayTR,
+bank virtual POS — plug in as connectors behind one type-safe API, so your application code never
+knows which one is handling a payment. It runs in your own runtime and never touches the money.
 
-## What is Next?
+## Where to next
 
 <Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
+  <Card title="Get started" href="/docs/get-started" description="Install, wire a gateway, take a payment." />
+  <Card title="paykit" href="/docs/paykit" description="The core orchestrator API." />
+  <Card title="Connectors" href="/docs/connectors" description="Gateways behind one contract." />
+  <Card title="Adapters" href="/docs/adapters" description="Database and framework bridges." />
+  <Card title="cryptokit" href="/docs/cryptokit" description="Ed25519 signing primitives." />
+  <Card title="CLI" href="/docs/cli" description="Keys and schema from the terminal." />
 </Cards>

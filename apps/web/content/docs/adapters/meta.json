@@ -1,0 +1,6 @@
+{
+  "root": true,
+  "title": "Adapters",
+  "description": "Database and framework bridges.",
+  "icon": "Layers"
+}
