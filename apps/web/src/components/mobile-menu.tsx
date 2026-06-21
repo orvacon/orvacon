@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "./theme-toggle";
 
 const links = [
   { label: "Architecture", href: "/architecture" },
@@ -33,7 +34,15 @@ export function MobileMenu() {
   }, [open]);
 
   return (
-    <div className="md:hidden">
+    <div className="flex items-center gap-1.5 md:hidden">
+      {open ? null : (
+        <Link
+          href="/#start"
+          className="inline-flex items-center rounded-lg bg-accent px-3.5 py-2 text-[13.5px] font-medium text-white transition hover:brightness-110"
+        >
+          Get started
+        </Link>
+      )}
       <button
         type="button"
         aria-label={open ? "Close menu" : "Open menu"}
@@ -56,38 +65,33 @@ export function MobileMenu() {
         </svg>
       </button>
       {open ? (
-        <>
-          <button
-            type="button"
-            aria-label="Close menu"
-            tabIndex={-1}
-            onClick={() => setOpen(false)}
-            className="fixed inset-x-0 bottom-0 top-[62px] z-40 cursor-default bg-black/40"
-          />
-          <div className="fixed inset-x-0 top-[62px] z-50 border-b border-line bg-bg px-5 pb-5 pt-1">
-            <nav className="flex flex-col">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="border-b border-line py-3.5 text-[15px] text-fg-dim transition-colors hover:text-fg"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <a
-                href="https://github.com/orvacon/orvacon"
-                target="_blank"
-                rel="noopener noreferrer"
+        <div className="fixed inset-x-0 bottom-0 top-[62px] z-50 overflow-y-auto bg-bg px-5 pb-10 pt-2">
+          <nav className="flex flex-col">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
                 onClick={() => setOpen(false)}
-                className="py-3.5 text-[15px] text-fg-dim transition-colors hover:text-fg"
+                className="border-b border-line py-4 text-[15px] text-fg-dim transition-colors hover:text-fg"
               >
-                GitHub
-              </a>
-            </nav>
+                {link.label}
+              </Link>
+            ))}
+            <a
+              href="https://github.com/orvacon/orvacon"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="border-b border-line py-4 text-[15px] text-fg-dim transition-colors hover:text-fg"
+            >
+              GitHub
+            </a>
+          </nav>
+          <div className="mt-6 flex items-center justify-between">
+            <span className="text-[14px] text-fg-dim">Theme</span>
+            <ThemeToggle />
           </div>
-        </>
+        </div>
       ) : null}
     </div>
   );
