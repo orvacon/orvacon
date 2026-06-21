@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Dialog } from "@/components/dialog";
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -45,7 +46,33 @@ function FeatureCard({
         <div className="flex h-9 w-9 items-center justify-center rounded-[9px] bg-[var(--accent-soft)] text-accent">
           {icon}
         </div>
-        <span className="font-mono text-[11px] text-fg-faint">{n}</span>
+        <div className="flex items-center gap-2.5">
+          <span className="font-mono text-[11px] text-fg-faint">{n}</span>
+          <Dialog
+            title={title}
+            description="Details coming soon."
+            trigger={
+              <button
+                type="button"
+                aria-label={`More about ${title}`}
+                className="flex h-6 w-6 items-center justify-center rounded-md border border-line text-fg-dim transition-colors hover:border-line-2 hover:text-fg"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </button>
+            }
+          />
+        </div>
       </div>
       <h3 className="m-0 text-[16.5px] font-semibold tracking-[-0.01em]">{title}</h3>
       <p className="mt-[9px] text-[14px] leading-[1.58] text-fg-dim">{desc}</p>
