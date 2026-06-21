@@ -18,7 +18,22 @@ export function CopyButton({ text }: { text: string }) {
       className="inline-flex items-center gap-1.5 rounded-md border border-[#2a2a2e] px-2.5 py-1 font-mono text-[11.5px] text-[#9a9a93] transition-colors hover:border-[#3a3a3f] hover:text-[#e6e3db]"
     >
       {copied ? (
-        <span className="text-[#9fce7e]">Copied ✓</span>
+        <span className="flex items-center gap-1 text-[#9fce7e]">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+          Copied
+        </span>
       ) : (
         <>
           <svg

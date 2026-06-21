@@ -76,13 +76,13 @@ export function GetStarted() {
           </Step>
           <Step n="2" title="Generate your Ed25519 webhook signing keys">
             <CodeBar>
-              <span className="text-[#8a8a86]">$</span> npx orvacon{" "}
+              <span className="text-[#8a8a86]">$</span> bunx orvacon{" "}
               <span className="text-[#74a7f5]">keys</span>
             </CodeBar>
           </Step>
           <Step n="3" title="Generate the schema with default-deny RLS">
             <CodeBar>
-              <span className="text-[#8a8a86]">$</span> npx orvacon{" "}
+              <span className="text-[#8a8a86]">$</span> bunx orvacon{" "}
               <span className="text-[#74a7f5]">generate</span>
             </CodeBar>
           </Step>
