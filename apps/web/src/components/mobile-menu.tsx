@@ -75,14 +75,24 @@ export function MobileMenu() {
 
   return (
     <div className="flex items-center gap-1.5 md:hidden">
-      {open ? null : (
-        <Link
-          href="/#start"
-          className="inline-flex items-center rounded-lg bg-accent px-3.5 py-2 text-[13.5px] font-medium text-white transition hover:brightness-110"
-        >
-          Get started
-        </Link>
-      )}
+      <AnimatePresence initial={false}>
+        {open ? null : (
+          <motion.div
+            key="bar-cta"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ duration: 0.18 }}
+          >
+            <Link
+              href="/#start"
+              className="inline-flex items-center rounded-lg bg-accent px-3.5 py-2 text-[13.5px] font-medium text-white transition hover:brightness-110"
+            >
+              Get started
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <button
         type="button"
         aria-label={open ? "Close menu" : "Open menu"}
