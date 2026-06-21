@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, type Variants } from "motion/react";
 import { useState } from "react";
 import { Check } from "./decor";
 
@@ -143,9 +143,21 @@ function VerifiedPanel() {
 
 const panels = [BoundaryPanel, RuntimePanel, TypesPanel, VerifiedPanel];
 
+const panelVariants: Variants = {
+  enter: (dir: number) => ({ opacity: 0, y: dir >= 0 ? -22 : 22 }),
+  center: { opacity: 1, y: 0 },
+  exit: (dir: number) => ({ opacity: 0, y: dir >= 0 ? 22 : -22 }),
+};
+
 export function OverviewTabs() {
   const [active, setActive] = useState(0);
+  const [direction, setDirection] = useState(0);
   const Panel = panels[active];
+
+  const select = (index: number) => {
+    setDirection(index > active ? 1 : -1);
+    setActive(index);
+  };
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-[22px] lg:grid-cols-[300px_1fr]">
@@ -156,7 +168,7 @@ export function OverviewTabs() {
             <button
               key={tab.n}
               type="button"
-              onClick={() => setActive(index)}
+              onClick={() => select(index)}
               className={`flex items-center gap-3 rounded-[11px] px-[18px] py-3.5 text-left transition-colors ${
                 on
                   ? "border-[1.5px] border-accent bg-[var(--accent-soft)]"
@@ -175,13 +187,15 @@ export function OverviewTabs() {
       </div>
 
       <div className="relative flex min-h-[220px] flex-col justify-center overflow-hidden rounded-2xl border border-line bg-bg-2 p-6">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={active}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.28 }}
+            custom={direction}
+            variants={panelVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
           >
             {Panel ? <Panel /> : null}
           </motion.div>
