@@ -1,16 +1,39 @@
 import { RootProvider } from "fumadocs-ui/provider/next";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./global.css";
-import { Inter } from "next/font/google";
 
-const inter = Inter({
+const geistSans = Geist({
   subsets: ["latin"],
+  variable: "--font-geist",
 });
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://orvacon.dev"),
+  title: {
+    default: "orvacon — provider-agnostic payment orchestration",
+    template: "%s — orvacon",
+  },
+  description:
+    "Provider-agnostic, TypeScript-first payment orchestration. One clean API, any gateway — Iyzico, PayTR and bank virtual POS plug in as connectors behind a single type-safe interface.",
+};
 
 export default function Layout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
-      <body className="flex flex-col min-h-screen">
-        <RootProvider>{children}</RootProvider>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="flex min-h-screen flex-col">
+        <RootProvider theme={{ defaultTheme: "dark", enableSystem: false }}>
+          {children}
+        </RootProvider>
       </body>
     </html>
   );
