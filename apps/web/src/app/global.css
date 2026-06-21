@@ -1,6 +1,108 @@
-@import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
-@import 'fumadocs-ui/css/preset.css';
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+:root {
+  --accent: #15b886;
+  --accent-2: #0b8c66;
+  --accent-soft: rgba(21, 184, 134, 0.14);
+  --accent-line: rgba(21, 184, 134, 0.4);
+
+  --bg: #fbfbfa;
+  --bg-2: #ffffff;
+  --bg-3: #f2f1ec;
+  --border: #e7e4db;
+  --border-2: #d6d3c8;
+  --text: #15151a;
+  --text-dim: #5e5b54;
+  --text-faint: #8b877c;
+  --guide: rgba(0, 0, 0, 0.08);
+  --mark: rgba(0, 0, 0, 0.26);
+
+  --color-fd-background: #fbfbfa;
+  --color-fd-foreground: #15151a;
+  --color-fd-muted: #f2f1ec;
+  --color-fd-muted-foreground: #5e5b54;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #15151a;
+  --color-fd-card: #ffffff;
+  --color-fd-card-foreground: #15151a;
+  --color-fd-border: #e7e4db;
+  --color-fd-primary: var(--accent);
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #f2f1ec;
+  --color-fd-secondary-foreground: #15151a;
+  --color-fd-accent: #f2f1ec;
+  --color-fd-accent-foreground: #15151a;
+  --color-fd-ring: var(--accent);
+}
+
+.dark {
+  --bg: #08080a;
+  --bg-2: #0f0f12;
+  --bg-3: #16161a;
+  --border: #1e1e24;
+  --border-2: #2d2d35;
+  --text: #f4f3f1;
+  --text-dim: #8e8d96;
+  --text-faint: #56565e;
+  --guide: rgba(255, 255, 255, 0.06);
+  --mark: rgba(255, 255, 255, 0.26);
+
+  --color-fd-background: #08080a;
+  --color-fd-foreground: #f4f3f1;
+  --color-fd-muted: #16161a;
+  --color-fd-muted-foreground: #8e8d96;
+  --color-fd-popover: #0f0f12;
+  --color-fd-popover-foreground: #f4f3f1;
+  --color-fd-card: #0f0f12;
+  --color-fd-card-foreground: #f4f3f1;
+  --color-fd-border: #1e1e24;
+  --color-fd-primary: var(--accent);
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #16161a;
+  --color-fd-secondary-foreground: #f4f3f1;
+  --color-fd-accent: #16161a;
+  --color-fd-accent-foreground: #f4f3f1;
+  --color-fd-ring: var(--accent);
+}
+
+@theme {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-bg-3: var(--bg-3);
+  --color-line: var(--border);
+  --color-line-2: var(--border-2);
+  --color-fg: var(--text);
+  --color-fg-dim: var(--text-dim);
+  --color-fg-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+}
+
+body {
+  font-family: var(--font-sans);
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.orv-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.orv-guides {
+  border-left: 1px dashed var(--guide);
+  border-right: 1px dashed var(--guide);
+}
 
 html {
   scrollbar-gutter: stable;
