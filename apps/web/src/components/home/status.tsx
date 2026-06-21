@@ -1,3 +1,4 @@
+import { RevealOnView } from "@/components/reveal-on-view";
 import { Check } from "./decor";
 
 const shipped: { name: string; tag?: string }[] = [
@@ -44,7 +45,7 @@ export function Status() {
           </p>
         </div>
       </div>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-[18px]">
+      <RevealOnView className="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-[18px]">
         <div className="rounded-[14px] border border-line bg-bg-2 p-[26px]">
           <div className="mb-[18px] flex items-center gap-2.5">
             <Check className="text-[#3fb97e]" />
@@ -96,7 +97,7 @@ export function Status() {
             No "supports every gateway" — these aren't shipped yet, and we won't pretend otherwise.
           </p>
         </div>
-      </div>
+      </RevealOnView>
     </section>
   );
 }

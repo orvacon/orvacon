@@ -1,3 +1,4 @@
+import { RevealOnView } from "@/components/reveal-on-view";
 import { Check } from "./decor";
 
 const wins = [
@@ -25,7 +26,7 @@ export function Comparison() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] items-stretch gap-[18px]">
+      <RevealOnView className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] items-stretch gap-[18px]">
         <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-bg-2">
           <div className="flex items-center gap-2.5 border-b border-line px-5 py-4">
             <span className="h-2 w-2 rounded-full bg-[#d8674e]" />
@@ -103,7 +104,7 @@ export function Comparison() {
             </div>
           </div>
         </div>
-      </div>
+      </RevealOnView>
     </section>
   );
 }
