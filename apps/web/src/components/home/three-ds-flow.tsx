@@ -132,25 +132,25 @@ export function ThreeDSFlow() {
               >
                 {activeStep && activePanel ? (
                   <>
-                    <div className="flex items-center gap-2 font-mono text-[11px] text-fg-faint">
+                    <div className="flex items-center gap-2 font-mono text-[12.5px] text-fg-faint">
                       <span className="text-accent">{activeStep.n}</span>
                       <span>{activeStep.title}</span>
                     </div>
                     <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <span className="font-mono text-[26px] font-semibold text-[#f4f3f1]">
+                      <span className="font-mono text-[clamp(34px,4.5vw,46px)] font-semibold text-[#f4f3f1]">
                         {activePanel.title}
                       </span>
                       <span
-                        className={`rounded px-2 py-0.5 font-mono text-[11px] ${activePanel.badgeClass}`}
+                        className={`rounded px-2.5 py-1 font-mono text-[12.5px] ${activePanel.badgeClass}`}
                       >
                         {activePanel.badge}
                       </span>
                     </div>
-                    <div className="mt-4 flex flex-col gap-2.5">
+                    <div className="mt-6 flex flex-col gap-3.5">
                       {activePanel.lines.map((line) => (
                         <div
                           key={line}
-                          className="flex items-center gap-2.5 font-mono text-[12.5px] text-[#c9c7bf]"
+                          className="flex items-center gap-3 font-mono text-[15.5px] text-[#c9c7bf]"
                         >
                           <Check className="shrink-0 text-[#3fb97e]" />
                           {line}

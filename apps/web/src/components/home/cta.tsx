@@ -5,7 +5,7 @@ export function CTA() {
     <section className="relative overflow-hidden border-t border-[#1e1e24] bg-[#08080a]">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-[-10%] h-[120%] w-[80%] -translate-x-1/2 blur-[14px] [background:radial-gradient(50%_55%_at_50%_30%,color-mix(in_srgb,var(--accent)_38%,transparent),transparent_68%)]"
+        className="pointer-events-none absolute left-1/2 top-[6%] h-[82%] w-[80%] -translate-x-1/2 blur-[22px] [background:radial-gradient(50%_55%_at_50%_38%,color-mix(in_srgb,var(--accent)_34%,transparent),transparent_70%)]"
       />
       <div
         aria-hidden="true"
