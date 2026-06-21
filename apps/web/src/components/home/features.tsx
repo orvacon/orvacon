@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Dialog } from "@/components/dialog";
+import { ExpandableCard } from "@/components/expandable-card";
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -33,52 +33,51 @@ function FeatureCard({
   children?: ReactNode;
 }) {
   return (
-    <div className="relative bg-bg px-6 py-7">
-      <span
-        aria-hidden="true"
-        className="absolute left-[-1px] top-[-1px] h-[9px] w-[9px] border-l-[1.5px] border-t-[1.5px] border-[var(--mark)]"
-      />
-      <span
-        aria-hidden="true"
-        className="absolute bottom-[-1px] right-[-1px] h-[9px] w-[9px] border-b-[1.5px] border-r-[1.5px] border-[var(--mark)]"
-      />
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex h-9 w-9 items-center justify-center rounded-[9px] bg-[var(--accent-soft)] text-accent">
-          {icon}
-        </div>
-        <div className="flex items-center gap-2.5">
-          <span className="font-mono text-[11px] text-fg-faint">{n}</span>
-          <Dialog
-            eyebrow="Why it's different"
-            index={n}
-            title={title}
-            trigger={
-              <button
-                type="button"
-                aria-label={`More about ${title}`}
-                className="flex h-6 w-6 items-center justify-center rounded-md border border-line text-fg-dim transition-colors hover:border-line-2 hover:text-fg"
+    <ExpandableCard
+      label={`${title} — details`}
+      expanded={
+        <p className="text-[14.5px] leading-[1.65] text-fg-dim">
+          More on "{title}" is coming soon — how it works, the guarantees it makes, and how to wire
+          it up.
+        </p>
+      }
+    >
+      <div className="group relative h-full bg-bg px-6 py-7 transition-colors hover:bg-bg-2">
+        <span
+          aria-hidden="true"
+          className="absolute left-[-1px] top-[-1px] h-[9px] w-[9px] border-l-[1.5px] border-t-[1.5px] border-[var(--mark)]"
+        />
+        <span
+          aria-hidden="true"
+          className="absolute bottom-[-1px] right-[-1px] h-[9px] w-[9px] border-b-[1.5px] border-r-[1.5px] border-[var(--mark)]"
+        />
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[9px] bg-[var(--accent-soft)] text-accent">
+            {icon}
+          </div>
+          <div className="flex items-center gap-2.5">
+            <span className="font-mono text-[11px] text-fg-faint">{n}</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-md border border-line text-fg-dim transition-colors group-hover:border-line-2 group-hover:text-fg">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              </button>
-            }
-          />
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+          </div>
         </div>
+        <h3 className="m-0 text-[16.5px] font-semibold tracking-[-0.01em]">{title}</h3>
+        <p className="mt-[9px] text-[14px] leading-[1.58] text-fg-dim">{desc}</p>
+        {children}
       </div>
-      <h3 className="m-0 text-[16.5px] font-semibold tracking-[-0.01em]">{title}</h3>
-      <p className="mt-[9px] text-[14px] leading-[1.58] text-fg-dim">{desc}</p>
-      {children}
-    </div>
+    </ExpandableCard>
   );
 }
 
