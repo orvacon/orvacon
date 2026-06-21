@@ -115,12 +115,6 @@ export function SiteFooter() {
               >
                 Security policy
               </a>
-              <Link href="/#changelog" className="text-fg-dim transition-colors hover:text-fg">
-                Changelog
-              </Link>
-              <Link href="/#start" className="text-fg-dim transition-colors hover:text-fg">
-                Get started
-              </Link>
             </div>
           </div>
           <FooterColumn title="Project" links={project} />
