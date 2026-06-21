@@ -68,33 +68,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-[1232px] px-7 pb-10 pt-14">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-x-8 gap-y-9">
           <div className="min-w-0">
-            <div className="flex items-center gap-[11px]">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect
-                  x="1.6"
-                  y="1.6"
-                  width="20.8"
-                  height="20.8"
-                  rx="6"
-                  stroke="var(--accent)"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="M6.5 8 L11.5 12 L6.5 16"
-                  stroke="var(--accent)"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12 12 L17.5 12"
-                  stroke="var(--accent)"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span className="text-[15px] font-semibold tracking-tight">orvacon</span>
-            </div>
+            <span className="text-[15px] font-semibold tracking-tight">orvacon</span>
             <p className="mt-3.5 max-w-[34ch] text-[13.5px] leading-relaxed text-fg-dim">
               Provider-agnostic, TypeScript-first payment orchestration. Runs in your own runtime —
               it never touches the money.

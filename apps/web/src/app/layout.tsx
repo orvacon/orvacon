@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://orvacon.dev"),
+  metadataBase: new URL("https://orvacon.com"),
   title: {
     default: "orvacon — provider-agnostic payment orchestration",
     template: "%s — orvacon",
