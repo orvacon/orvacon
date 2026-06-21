@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@radix-ui/react-dialog": "^1.1.6",
-    "@xyflow/react": "^12.3.0",
     "fumadocs-core": "16.10.5",
     "fumadocs-mdx": "15.0.12",
     "fumadocs-ui": "16.10.5",
