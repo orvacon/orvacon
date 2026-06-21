@@ -9,6 +9,7 @@ import { Hero } from "@/components/home/hero";
 import { Lead } from "@/components/home/lead";
 import { Marquee } from "@/components/home/marquee";
 import { Overview } from "@/components/home/overview";
+import { Principles } from "@/components/home/principles";
 import { Status } from "@/components/home/status";
 import { ThreeDS } from "@/components/home/three-ds";
 
@@ -24,6 +25,7 @@ export default function HomePage() {
         <Features />
         <ThreeDS />
         <Definition />
+        <Principles />
         <Status />
         <Bento />
         <GetStarted />
