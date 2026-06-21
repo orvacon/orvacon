@@ -18,13 +18,8 @@ export default function OpengraphImage() {
         color: "#f4f3f1",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 12, border: "3px solid #15b886" }} />
-        <div
-          style={{ fontSize: 28, color: "#15b886", letterSpacing: 6, textTransform: "uppercase" }}
-        >
-          orvacon
-        </div>
+      <div style={{ fontSize: 36, fontWeight: 600, letterSpacing: "-0.02em", color: "#15b886" }}>
+        orvacon
       </div>
       <div
         style={{
@@ -32,7 +27,7 @@ export default function OpengraphImage() {
           fontWeight: 600,
           lineHeight: 1.04,
           letterSpacing: "-0.03em",
-          marginTop: 44,
+          marginTop: 34,
           maxWidth: 940,
         }}
       >
