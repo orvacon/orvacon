@@ -1,5 +1,3 @@
-import { ScrambleText } from "@/components/scramble-text";
-
 const isnt = [
   {
     bold: "Not an Iyzico wrapper.",
@@ -16,7 +14,7 @@ export function Definition() {
         <div className="min-w-0">
           <div className="orv-eyebrow">In short</div>
           <h2 className="mt-4 max-w-[16ch] text-[clamp(28px,3.6vw,44px)] font-semibold leading-[1.08] tracking-[-0.03em]">
-            <ScrambleText text="What orvacon is — and isn't." trigger="view" />
+            What orvacon is — and isn't.
           </h2>
         </div>
         <div className="flex h-full min-w-0 items-end">

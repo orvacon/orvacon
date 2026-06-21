@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 export function ExpandableCard({
   children,
@@ -13,8 +13,16 @@ export function ExpandableCard({
   label?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const layoutId = useId();
+  const [isDesktop, setIsDesktop] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)");
+    setIsDesktop(mq.matches);
+    const onChange = (event: MediaQueryListEvent) => setIsDesktop(event.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -34,18 +42,21 @@ export function ExpandableCard({
     };
   }, [open]);
 
+  const initial = isDesktop ? { opacity: 0, scale: 0.97, y: 10 } : { y: "100%" };
+  const animate = isDesktop ? { opacity: 1, scale: 1, y: 0 } : { y: 0 };
+  const exit = isDesktop ? { opacity: 0, scale: 0.97, y: 10 } : { y: "100%" };
+
   return (
     <>
-      <motion.button
+      <button
         type="button"
-        layoutId={layoutId}
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-label={label}
         className="block h-full w-full cursor-pointer text-left"
       >
         {children}
-      </motion.button>
+      </button>
 
       <AnimatePresence>
         {open ? (
@@ -60,10 +71,12 @@ export function ExpandableCard({
               className="fixed inset-0 z-40 cursor-default bg-black/60 backdrop-blur-sm"
             />
             <motion.div
-              layoutId={layoutId}
               role="dialog"
               aria-modal="true"
-              transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
+              initial={initial}
+              animate={animate}
+              exit={exit}
+              transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
               className="fixed inset-x-0 bottom-0 z-50 flex max-h-[88vh] flex-col overflow-hidden rounded-t-2xl bg-bg-2 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.7)] sm:inset-0 sm:m-auto sm:h-fit sm:max-h-[85vh] sm:max-w-[560px] sm:rounded-2xl"
             >
               <button
