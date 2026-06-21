@@ -43,7 +43,7 @@ function FlowNode({ data }: NodeProps<OverviewNode>) {
       className={`rounded-[9px] px-3.5 py-2 text-center font-mono text-[12.5px] ${variantClass(data)}`}
     >
       {data.variant !== "app" ? (
-        <Handle type="target" position={Position.Top} style={hiddenHandle} />
+        <Handle type="target" position={Position.Left} style={hiddenHandle} />
       ) : null}
       <div className="flex flex-col items-center gap-1">
         <span>{data.label}</span>
@@ -60,7 +60,7 @@ function FlowNode({ data }: NodeProps<OverviewNode>) {
         ) : null}
       </div>
       {data.variant !== "connector" ? (
-        <Handle type="source" position={Position.Bottom} style={hiddenHandle} />
+        <Handle type="source" position={Position.Right} style={hiddenHandle} />
       ) : null}
     </div>
   );
@@ -72,37 +72,37 @@ const nodes: OverviewNode[] = [
   {
     id: "app",
     type: "box",
-    position: { x: 170, y: 0 },
+    position: { x: 0, y: 116 },
     data: { label: "Your application", variant: "app" },
   },
   {
     id: "authorize",
     type: "box",
-    position: { x: 165, y: 84 },
+    position: { x: 188, y: 116 },
     data: { label: "orva.authorize(…)", variant: "authorize" },
   },
   {
     id: "orchestrator",
     type: "box",
-    position: { x: 182, y: 168 },
+    position: { x: 380, y: 116 },
     data: { label: "orchestrator", variant: "orchestrator" },
   },
   {
     id: "iyzico",
     type: "box",
-    position: { x: 40, y: 276 },
+    position: { x: 560, y: 24 },
     data: { label: "Iyzico", variant: "connector", badge: "verified", verified: true },
   },
   {
     id: "paytr",
     type: "box",
-    position: { x: 188, y: 276 },
+    position: { x: 560, y: 116 },
     data: { label: "PayTR", variant: "connector", badge: "roadmap" },
   },
   {
     id: "bankpos",
     type: "box",
-    position: { x: 320, y: 276 },
+    position: { x: 560, y: 208 },
     data: { label: "Bank POS", variant: "connector", badge: "roadmap" },
   },
 ];
@@ -112,6 +112,7 @@ function makeEdge(id: string, source: string, target: string): Edge {
     id,
     source,
     target,
+    type: "smoothstep",
     animated: true,
     style: { stroke: "var(--accent)", strokeWidth: 1.5 },
   };
@@ -127,13 +128,13 @@ const edges: Edge[] = [
 
 export function OverviewFlow() {
   return (
-    <div className="h-[380px] w-full">
+    <div className="orv-flow h-[340px] w-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.18 }}
+        fitViewOptions={{ padding: 0.16 }}
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}

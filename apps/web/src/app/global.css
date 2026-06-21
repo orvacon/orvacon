@@ -128,3 +128,7 @@ html > body[data-scroll-locked] {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.orv-flow:hover .react-flow__edge-path {
+  animation-play-state: paused;
+}
