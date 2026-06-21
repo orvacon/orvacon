@@ -31,8 +31,7 @@ const BANNER = [
 const LINKS: { label: string; url: string }[] = [
   { label: "Website", url: "https://orvacon.com" },
   { label: "Docs", url: "https://orvacon.com/docs" },
-  { label: "Careers", url: "https://orvacon.com/careers" },
-  { label: "Status", url: "https://status.orvacon.com" },
+  { label: "GitHub", url: "https://github.com/orvacon/orvacon" },
 ];
 
 export function ConsoleBanner() {
