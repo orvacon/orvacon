@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "@/components/icons";
 import { getMDXComponents } from "@/components/mdx";
+import { formatDate } from "@/lib/date";
 import { blogSource } from "@/lib/source";
 
 export function generateStaticParams() {
@@ -28,7 +29,7 @@ export default async function BlogPost(props: PageProps<"/blog/[slug]">) {
   const Body = page.data.body;
 
   return (
-    <article className="orv-guides mx-auto max-w-[1232px] px-[clamp(24px,3.4vw,46px)] py-[72px]">
+    <div className="mx-auto max-w-[720px] px-6 py-[72px] sm:px-8">
       <Link
         href="/blog"
         className="inline-flex items-center gap-1.5 font-mono text-[12.5px] text-fg-dim transition-colors hover:text-fg"
@@ -36,15 +37,20 @@ export default async function BlogPost(props: PageProps<"/blog/[slug]">) {
         <ArrowRight className="h-3.5 w-3.5 rotate-180" />
         Blog
       </Link>
-      <h1 className="mt-7 max-w-[24ch] text-[clamp(30px,4.4vw,52px)] font-semibold leading-[1.05] tracking-[-0.035em]">
-        {page.data.title}
-      </h1>
-      <div className="mt-4 font-mono text-[13px] text-fg-faint">
-        {page.data.date} · {page.data.author}
-      </div>
-      <DocsBody className="mt-9">
+      <header className="mt-8 border-b border-line pb-8">
+        <h1 className="text-[clamp(32px,4.6vw,46px)] font-semibold leading-[1.08] tracking-[-0.035em]">
+          {page.data.title}
+        </h1>
+        <p className="mt-4 text-[17px] leading-[1.55] text-fg-dim">{page.data.description}</p>
+        <div className="mt-5 flex items-center gap-2.5 font-mono text-[12.5px] text-fg-faint">
+          <span className="text-fg-dim">{page.data.author}</span>
+          <span className="text-line-2">·</span>
+          <time dateTime={page.data.date}>{formatDate(page.data.date)}</time>
+        </div>
+      </header>
+      <DocsBody className="mt-8">
         <Body components={getMDXComponents()} />
       </DocsBody>
-    </article>
+    </div>
   );
 }
