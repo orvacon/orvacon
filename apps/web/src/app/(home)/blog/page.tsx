@@ -45,19 +45,19 @@ export default function BlogPage() {
               href={post.url}
               className="group flex flex-col rounded-2xl border border-line bg-bg-2 p-6 transition-colors hover:border-[var(--accent-line)]"
             >
-              <div className="font-mono text-[11.5px] text-fg-faint">
-                {formatDate(post.data.date)} · {post.data.author}
-              </div>
+              {post.data.tag ? <div className="orv-eyebrow">{post.data.tag}</div> : null}
               <h2 className="mt-2.5 text-[18px] font-semibold tracking-[-0.015em] transition-colors group-hover:text-accent">
                 {post.data.title}
               </h2>
               <p className="mt-2 flex-1 text-[14px] leading-[1.6] text-fg-dim">
                 {post.data.description}
               </p>
-              <span className="mt-4 inline-flex items-center gap-1.5 font-mono text-[12.5px] text-accent">
-                Read
-                <ArrowRight className="h-3.5 w-3.5" />
-              </span>
+              <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4">
+                <span className="font-mono text-[11.5px] text-fg-faint">
+                  {formatDate(post.data.date)} · {post.data.author}
+                </span>
+                <ArrowRight className="h-4 w-4 text-fg-faint transition-all group-hover:translate-x-0.5 group-hover:text-accent" />
+              </div>
             </Link>
           ))}
         </div>

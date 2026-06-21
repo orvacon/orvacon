@@ -43,18 +43,21 @@ export function ChangelogList({ items }: { items: Item[] }) {
 
   const [filter, setFilter] = useState<string | null>(null);
   const visible = filter ? items.filter((item) => item.tag === filter) : items;
+  const navReleases = visible.map((item) => ({ version: item.version, tag: item.tag }));
 
   return (
     <div className="grid gap-10 lg:grid-cols-[180px_1fr]">
       <aside className="hidden lg:block">
         <div className="sticky top-[84px]">
           <div className="orv-eyebrow mb-3.5">Releases</div>
-          <ChangelogNav
-            releases={visible.map((item) => ({ version: item.version, tag: item.tag }))}
-          />
+          <ChangelogNav releases={navReleases} />
         </div>
       </aside>
       <div className="min-w-0">
+        <div className="mb-5 lg:hidden">
+          <div className="orv-eyebrow mb-2.5">Releases</div>
+          <ChangelogNav releases={navReleases} orientation="horizontal" />
+        </div>
         {tags.length > 0 ? (
           <div className="mb-6 flex flex-wrap gap-2">
             <FilterPill active={filter === null} onClick={() => setFilter(null)}>
