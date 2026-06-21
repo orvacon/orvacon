@@ -1,0 +1,6 @@
+{
+  "root": true,
+  "title": "Connectors",
+  "description": "Gateways behind one contract.",
+  "icon": "Cable"
+}

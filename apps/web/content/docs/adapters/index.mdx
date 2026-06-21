@@ -1,0 +1,27 @@
+---
+title: Adapters
+description: Database and framework bridges.
+---
+
+Adapters bridge orvacon to your infrastructure — bring your own database and framework.
+
+## Database
+
+- **`@orvacon/adapter-supabase`** — generates a Postgres schema with **default-deny** row-level
+  security out of the box.
+- **`@orvacon/adapter-drizzle`** — a Drizzle ORM database adapter.
+
+Any Postgres works underneath — Supabase, Neon, RDS, or your own.
+
+## Framework
+
+- **`@orvacon/adapter-nextjs`** — App Router route handlers and webhook verification:
+
+```ts title="app/api/orva/callback/[connector]/route.ts"
+export const { POST } = toNextJsHandler(orva, {
+  returnUrl: { success: "/checkout/done", failure: "/checkout/failed" },
+});
+```
+
+The finalize and state writes settle **before** the browser is redirected, so the user sees the
+real outcome; the signed outbound webhook is drained in the background.

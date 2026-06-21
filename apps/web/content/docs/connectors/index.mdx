@@ -1,0 +1,23 @@
+---
+title: Connectors
+description: Gateways behind one contract.
+---
+
+A connector teaches orvacon how to talk to one payment gateway. Every connector implements the same
+contract — `authorize`, `finalize`, `capture`, `refund`, `reconcile`, `parseWebhook` — so adding or
+switching a provider is a configuration change, never a rewrite.
+
+## Available
+
+- **`@orvacon/connector-iyzico`** — raw-card and 3-D Secure, verified end-to-end against the Iyzico
+  sandbox. Stored-card tokens ship as experimental.
+- **`@orvacon/connector-paytr`** — behind the same contract; on the roadmap.
+
+```ts
+import { iyzico } from "@orvacon/connector-iyzico";
+
+const connector = iyzico({ apiKey, secretKey });
+```
+
+Connector **capabilities** (signature encoding, 3-D Secure flow, partial capture support) are
+declared per gateway, so the core adapts without leaking gateway specifics into your code.

@@ -1,0 +1,17 @@
+---
+title: cryptokit
+description: Ed25519 signing primitives.
+---
+
+`@orvacon/cryptokit` provides the signing and comparison primitives orvacon uses for webhook
+integrity.
+
+- **Ed25519 keypairs** — outbound webhooks are signed with an asymmetric private key that never
+  leaves orvacon; your endpoint verifies with the public key. A leaked verification key can't forge
+  events.
+- **Constant-time comparison** — every signature and token is compared in constant time, so an
+  attacker can't recover it byte-by-byte by timing verification.
+
+<Callout type="warn">
+Never compare a signature with `===`. Use the timing-safe comparison — orvacon does, everywhere.
+</Callout>

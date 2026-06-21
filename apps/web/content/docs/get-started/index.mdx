@@ -1,0 +1,73 @@
+---
+title: Get started
+description: Install orvacon, wire a gateway, and take your first payment.
+---
+
+orvacon installs into your own app — there is no hosted service. You bring a database and a gateway
+account; orvacon orchestrates the rest.
+
+## Install
+
+```bash
+bun add @orvacon/paykit @orvacon/connector-iyzico @orvacon/adapter-supabase @orvacon/adapter-nextjs postgres
+```
+
+## Generate keys and schema
+
+```bash
+npx orvacon keys      # Ed25519 webhook signing keypair → ORVACON_WEBHOOK_SIGNING_KEY
+npx orvacon generate  # Postgres schema with default-deny row-level security
+```
+
+## Configure
+
+```ts title="lib/orva.ts"
+import { orvacon } from "@orvacon/paykit";
+import { iyzico } from "@orvacon/connector-iyzico";
+
+export const orva = orvacon({
+  database: db,
+  connectors: [
+    iyzico({
+      apiKey: process.env.IYZICO_API_KEY!,
+      secretKey: process.env.IYZICO_SECRET_KEY!,
+    }),
+  ],
+  webhookSigningKey: process.env.ORVACON_WEBHOOK_SIGNING_KEY!,
+  webhookUrl: "https://your-app.com/api/webhooks/orvacon",
+});
+```
+
+Config is validated fail-fast — a missing or malformed key throws at setup, not at the first
+payment.
+
+## Take a payment
+
+```ts
+const outcome = await orva.authorize({
+  amount: money(1499, "TRY"),
+  source: card,
+  threeDSecure: true,
+  callbackUrl: "https://your-app.com/api/orva/callback/iyzico",
+  idempotencyKey,
+});
+```
+
+A 3-D Secure payment returns `requires_action`; orvacon persists that state and resumes from the
+**signed finalize** when the browser returns — it never trusts the raw callback POST.
+
+## Wire the callback (Next.js)
+
+```ts title="app/api/orva/callback/[connector]/route.ts"
+import { toNextJsHandler } from "@orvacon/adapter-nextjs";
+import { orva } from "@/lib/orva";
+
+export const { POST } = toNextJsHandler(orva, {
+  returnUrl: { success: "/checkout/done", failure: "/checkout/failed" },
+});
+```
+
+<Callout title="Make the callback route public">
+The gateway redirects the browser to your callback with no session — exclude
+`/api/orva/callback` from your middleware, or an auth check will silently strand payments.
+</Callout>

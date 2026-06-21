@@ -1,0 +1,18 @@
+---
+title: CLI
+description: Keys and schema from the terminal.
+---
+
+The CLI publishes as the unscoped `orvacon` package, so it runs without installing — shadcn-style.
+
+```bash
+npx orvacon keys      # generate an Ed25519 webhook signing keypair
+npx orvacon generate  # generate the database schema with default-deny RLS
+```
+
+The signing key prints as `ORVACON_WEBHOOK_SIGNING_KEY=…`; set it in your environment and never
+commit it. The public verification key can be distributed freely.
+
+<Callout type="info">
+The CLI is an early release — commands are still landing.
+</Callout>

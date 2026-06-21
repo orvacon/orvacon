@@ -1,0 +1,23 @@
+---
+title: paykit
+description: The core orchestrator.
+---
+
+`@orvacon/paykit` is the core. It owns everything that isn't gateway-specific: the payment state
+machine, `Money` typing, idempotency, the hash-chained ledger, and Ed25519 webhook signing.
+
+The `orvacon()` factory validates config fail-fast and returns an instance:
+
+```ts
+const orva = orvacon({ database, connectors, webhookSigningKey, webhookUrl });
+```
+
+| Method | What it does |
+| --- | --- |
+| `authorize` | Begin a payment (returns `requires_action` for 3-D Secure). |
+| `capture` | Settle authorized funds. |
+| `refund` | Reverse a captured payment (full or partial). |
+| `handleWebhook` | Verify and apply an inbound gateway webhook. |
+| `reconcile` | Re-read a pending payment from the gateway and settle it. |
+
+State, money typing, idempotency and the ledger are covered in their own pages — being written now.
