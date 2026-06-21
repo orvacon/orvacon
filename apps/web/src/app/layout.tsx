@@ -1,6 +1,7 @@
 import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ConsoleBanner } from "@/components/console-banner";
 import "./global.css";
 
 const geistSans = Geist({
@@ -32,6 +33,7 @@ export default function Layout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-screen flex-col">
         <RootProvider theme={{ defaultTheme: "dark", enableSystem: false }}>
+          <ConsoleBanner />
           {children}
         </RootProvider>
       </body>
