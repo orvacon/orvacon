@@ -1,7 +1,7 @@
+import { CTA } from "@/components/cta";
 import { Bento } from "@/components/home/bento";
 import { Changelog } from "@/components/home/changelog";
 import { Comparison } from "@/components/home/comparison";
-import { CTA } from "@/components/home/cta";
 import { Definition } from "@/components/home/definition";
 import { Features } from "@/components/home/features";
 import { GetStarted } from "@/components/home/get-started";

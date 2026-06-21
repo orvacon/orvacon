@@ -179,3 +179,19 @@ html > body[data-scroll-locked] {
     transform: translateY(100%);
   }
 }
+
+@keyframes orv-dash-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+
+@keyframes orv-glow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.82;
+  }
+}
