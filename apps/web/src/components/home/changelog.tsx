@@ -27,10 +27,7 @@ const changes = [
 
 export function Changelog() {
   return (
-    <section
-      id="changelog"
-      className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[88px]"
-    >
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[88px]">
       <div className="mb-11 flex flex-wrap items-end justify-between gap-6">
         <div>
           <div className="orv-eyebrow">07 — Changelog</div>
