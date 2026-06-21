@@ -70,7 +70,7 @@ export function Hero() {
               </div>
               <CopyButton text={heroCode} />
             </div>
-            <pre className="m-0 overflow-x-auto px-[22px] pb-6 pt-[22px] font-mono text-[13.5px] leading-[1.8] text-[#c9c7bf]">
+            <pre className="no-scrollbar m-0 overflow-x-auto px-[22px] pb-6 pt-[22px] font-mono text-[13.5px] leading-[1.8] text-[#c9c7bf]">
               <code>
                 <span className="text-[#b69bf0]">import</span>
                 {" { "}
@@ -138,31 +138,6 @@ export function Hero() {
             never references the gateway again.
           </p>
         </div>
-      </section>
-
-      <section className="border-t border-dashed border-[var(--guide)] px-[30px] pb-4 pt-[18px]">
-        <div className="flex flex-wrap items-center gap-x-7 gap-y-2.5 font-mono text-[12px] uppercase tracking-[0.08em] text-fg-faint">
-          <span>MIT licensed</span>
-          <span className="text-line-2">/</span>
-          <span>Runs in your runtime</span>
-          <span className="text-line-2">/</span>
-          <span>Never holds money</span>
-          <span className="text-line-2">/</span>
-          <span>Ed25519-signed webhooks</span>
-          <span className="text-line-2">/</span>
-          <span>Integer minor units</span>
-        </div>
-      </section>
-
-      <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[90px]">
-        <h2 className="m-0 max-w-[24ch] text-[clamp(28px,3.7vw,46px)] font-semibold leading-[1.12] tracking-[-0.03em]">
-          <span className="text-fg">One clean API. Any gateway. </span>
-          <span className="text-fg-faint">
-            Connectors plug in behind a single type-safe interface, so your application code never
-            knows which gateway is handling a payment — swap or add one by changing configuration,
-            not logic.
-          </span>
-        </h2>
       </section>
     </>
   );
