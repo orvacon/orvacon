@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ShaderBackground } from "@/components/shader-background";
 
 export function CTA() {
   return (
@@ -7,10 +8,7 @@ export function CTA() {
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-[6%] h-[82%] w-[80%] -translate-x-1/2 blur-[22px] [background:radial-gradient(50%_55%_at_50%_38%,color-mix(in_srgb,var(--accent)_34%,transparent),transparent_70%)]"
       />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-50 [background-image:radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1.3px)] [background-size:11px_11px] [mask-image:radial-gradient(60%_60%_at_50%_40%,#000,transparent_75%)]"
-      />
+      <ShaderBackground className="pointer-events-none absolute inset-0 z-[1] h-full w-full" />
       <div className="relative z-[2] mx-auto max-w-[760px] px-7 pb-[124px] pt-[118px] text-center">
         <div className="font-mono text-[11.5px] uppercase tracking-[0.18em] text-white/60">
           MIT · v0.1 · Running in your own runtime
