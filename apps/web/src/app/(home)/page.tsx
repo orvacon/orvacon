@@ -1,3 +1,4 @@
+import { Bento } from "@/components/home/bento";
 import { Changelog } from "@/components/home/changelog";
 import { Comparison } from "@/components/home/comparison";
 import { CTA } from "@/components/home/cta";
@@ -24,6 +25,7 @@ export default function HomePage() {
         <ThreeDS />
         <Definition />
         <Status />
+        <Bento />
         <GetStarted />
         <Changelog />
       </div>
