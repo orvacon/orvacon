@@ -7,6 +7,7 @@ import { Features } from "@/components/home/features";
 import { GetStarted } from "@/components/home/get-started";
 import { Hero } from "@/components/home/hero";
 import { Lead } from "@/components/home/lead";
+import { Manifesto } from "@/components/home/manifesto";
 import { Marquee } from "@/components/home/marquee";
 import { Overview } from "@/components/home/overview";
 import { Principles } from "@/components/home/principles";
@@ -30,6 +31,7 @@ export default function HomePage() {
         <Bento />
         <GetStarted />
         <Changelog />
+        <Manifesto />
       </div>
       <CTA />
     </>

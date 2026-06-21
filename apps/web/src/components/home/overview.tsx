@@ -2,7 +2,10 @@ import { OverviewTabs } from "./overview-tabs";
 
 export function Overview() {
   return (
-    <section id="idea" className="border-t border-dashed border-[var(--guide)] px-[30px] py-[88px]">
+    <section
+      id="idea"
+      className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[88px]"
+    >
       <div className="mb-[42px] grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] items-start gap-x-14 gap-y-[30px]">
         <div className="min-w-0">
           <div className="orv-eyebrow">01 — Overview</div>
