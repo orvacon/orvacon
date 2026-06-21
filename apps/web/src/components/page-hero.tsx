@@ -6,12 +6,14 @@ export function PageHero({
   titleLead,
   titleRest,
   lead,
+  footer,
 }: {
   badge: string;
   icon: ReactNode;
   titleLead: string;
   titleRest: string;
   lead: ReactNode;
+  footer?: ReactNode;
 }) {
   return (
     <section className="relative px-[30px] pb-16 pt-[84px] text-center">
@@ -31,6 +33,7 @@ export function PageHero({
         <p className="mx-auto mt-[22px] max-w-[60ch] text-[18px] leading-[1.58] text-fg-dim">
           {lead}
         </p>
+        {footer ? <div className="mt-[26px]">{footer}</div> : null}
       </div>
     </section>
   );
