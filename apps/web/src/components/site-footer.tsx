@@ -14,13 +14,13 @@ const product = [
   { label: "Security", href: "/security" },
   { label: "Pricing", href: "/pricing" },
   { label: "Use cases", href: "/use-cases" },
+  { label: "Roadmap", href: "/roadmap" },
 ];
 
 const project = [
   { label: "GitHub", href: "https://github.com/orvacon/orvacon" },
-  { label: "Roadmap", href: "/roadmap" },
   { label: "Issues", href: "https://github.com/orvacon/orvacon/issues" },
-  { label: "Releases", href: "https://github.com/orvacon/orvacon/releases" },
+  { label: "Sponsor", href: "https://github.com/sponsors/orvacon" },
 ];
 
 function FooterColumn({
@@ -93,6 +93,12 @@ export function SiteFooter() {
               Resources
             </div>
             <div className="flex flex-col gap-2.5 text-[13.5px]">
+              <span className="inline-flex items-center gap-1.5 text-fg-dim">
+                Docs
+                <span className="rounded border border-line px-1.5 py-px font-mono text-[9.5px] text-fg-faint">
+                  soon
+                </span>
+              </span>
               <a
                 href="https://github.com/orvacon/orvacon#readme"
                 target="_blank"
@@ -101,12 +107,6 @@ export function SiteFooter() {
               >
                 README
               </a>
-              <span className="inline-flex items-center gap-1.5 text-fg-dim">
-                Docs
-                <span className="rounded border border-line px-1.5 py-px font-mono text-[9.5px] text-fg-faint">
-                  soon
-                </span>
-              </span>
               <a
                 href="https://github.com/orvacon/orvacon/security/policy"
                 target="_blank"
