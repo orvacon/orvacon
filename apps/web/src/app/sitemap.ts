@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { source } from "@/lib/source";
+import { blogSource, source } from "@/lib/source";
 
 const base = "https://orvacon.com";
 
@@ -12,6 +12,7 @@ const marketing = [
   "/use-cases",
   "/roadmap",
   "/changelog",
+  "/blog",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -23,6 +24,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   for (const page of source.getPages()) {
     entries.push({ url: `${base}${page.url}`, changeFrequency: "weekly", priority: 0.6 });
+  }
+
+  for (const page of blogSource.getPages()) {
+    entries.push({ url: `${base}${page.url}`, changeFrequency: "monthly", priority: 0.6 });
   }
 
   return entries;

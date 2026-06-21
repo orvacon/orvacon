@@ -16,6 +16,7 @@ const product = [
   { label: "Use cases", href: "/use-cases" },
   { label: "Roadmap", href: "/roadmap" },
   { label: "Changelog", href: "/changelog" },
+  { label: "Blog", href: "/blog" },
 ];
 
 const project = [
