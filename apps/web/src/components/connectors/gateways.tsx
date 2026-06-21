@@ -6,6 +6,7 @@ import {
   Pkg,
   SectionBar,
 } from "@/components/connectors/parts";
+import { Flow } from "@/components/icons";
 
 const gateways: ConnectorItem[] = [
   {
@@ -22,9 +23,10 @@ const gateways: ConnectorItem[] = [
     desc: (
       <>
         Raw-card and 3-D Secure, verified end-to-end against the gateway sandbox:{" "}
-        <span className="font-mono text-[12px] text-fg">
-          authorize → 3DS → capture → refund → reconcile
-        </span>
+        <Flow
+          steps={["authorize", "3DS", "capture", "refund", "reconcile"]}
+          className="font-mono text-[12px] text-fg"
+        />
         . Stored-card tokens ship as experimental.
       </>
     ),

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ExpandableCard } from "@/components/expandable-card";
+import { ArrowRight } from "@/components/icons";
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -165,7 +166,7 @@ export function Features() {
             <span className="rounded-[7px] border border-line-2 bg-bg-3 px-2.5 py-1.5 text-fg">
               ₺14.99
             </span>
-            <span className="text-fg-faint">→</span>
+            <ArrowRight className="h-4 w-4 shrink-0 text-fg-faint" />
             <span className="rounded-[7px] border border-[var(--accent-line)] bg-[var(--accent-soft)] px-2.5 py-1.5 text-accent">
               {`{ 1499, "TRY" }`}
             </span>

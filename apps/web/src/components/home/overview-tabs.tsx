@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import { useState } from "react";
+import { ArrowDown, ArrowRight } from "@/components/icons";
 import { Check } from "./decor";
 
 const tabs = [
@@ -14,8 +15,8 @@ const tabs = [
 function FlowArrow() {
   return (
     <div className="flex shrink-0 items-center justify-center text-fg-faint" aria-hidden="true">
-      <span className="sm:hidden">↓</span>
-      <span className="hidden sm:inline">→</span>
+      <ArrowDown className="h-3.5 w-3.5 sm:hidden" />
+      <ArrowRight className="hidden h-3.5 w-3.5 sm:block" />
     </div>
   );
 }
@@ -126,7 +127,7 @@ function VerifiedPanel() {
       <div className="flex flex-wrap items-center gap-2">
         {verifiedFlow.map((label, index) => (
           <span key={label} className="flex items-center gap-2">
-            {index > 0 ? <span className="text-fg-faint">→</span> : null}
+            {index > 0 ? <ArrowRight className="h-3.5 w-3.5 text-fg-faint" /> : null}
             <span className="rounded-md border border-line bg-bg px-2.5 py-1.5 font-mono text-[12px] text-fg-dim">
               {label}
             </span>

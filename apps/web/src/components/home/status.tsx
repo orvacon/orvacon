@@ -1,3 +1,4 @@
+import { ArrowRight } from "@/components/icons";
 import { RevealOnView } from "@/components/reveal-on-view";
 import { Check } from "./decor";
 
@@ -67,7 +68,7 @@ export function Status() {
         <span className="mr-1 text-[13px] font-medium text-fg">Verified end-to-end</span>
         {flow.map((label, index) => (
           <span key={label} className="flex items-center gap-2">
-            {index > 0 ? <span className="text-fg-faint">→</span> : null}
+            {index > 0 ? <ArrowRight className="h-3.5 w-3.5 text-fg-faint" /> : null}
             <span className="rounded-md border border-line bg-bg px-2 py-1 font-mono text-[12px] text-fg-dim">
               {label}
             </span>

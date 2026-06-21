@@ -1,3 +1,5 @@
+import { ArrowDown } from "@/components/icons";
+
 const coreItems = [
   "state machine",
   "Money typing",
@@ -73,8 +75,9 @@ export function Layers() {
             </div>
           </div>
         </div>
-        <div className="mt-3.5 p-1 text-center font-mono text-[11.5px] text-fg-faint">
-          ↓ gateways settle funds to your account
+        <div className="mt-3.5 flex items-center justify-center gap-1.5 p-1 font-mono text-[11.5px] text-fg-faint">
+          <ArrowDown className="h-3.5 w-3.5 shrink-0" />
+          <span>gateways settle funds to your account</span>
         </div>
       </div>
     </section>

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { CopyButton } from "@/components/copy-button";
+import { ArrowRight } from "@/components/icons";
 
 const installCommand =
   "bun add @orvacon/paykit @orvacon/connector-iyzico @orvacon/adapter-supabase @orvacon/adapter-nextjs postgres";
@@ -52,7 +53,8 @@ export function GetStarted() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-[9px] bg-accent px-[18px] py-[11px] text-[14.5px] font-medium text-white shadow-[0_10px_24px_-12px_var(--accent)] transition hover:-translate-y-px hover:brightness-[1.07]"
             >
-              Read the README →
+              Read the README
+              <ArrowRight className="h-4 w-4" />
             </a>
             <span className="inline-flex items-center gap-2 rounded-[9px] border border-line px-4 py-[11px] text-[14.5px] text-fg-dim">
               Docs
