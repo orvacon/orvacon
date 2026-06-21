@@ -5,7 +5,7 @@ import { HeroDemo } from "./hero-demo";
 export function Hero() {
   return (
     <>
-      <section className="px-[30px] pt-[88px]">
+      <section className="px-[clamp(24px,3.4vw,46px)] pt-[88px]">
         <div className="orv-eyebrow">TypeScript-first · Payment orchestration</div>
         <h1 className="mt-[22px] max-w-[15ch] text-[clamp(38px,5.4vw,66px)] font-semibold leading-[1.02] tracking-[-0.038em]">
           Provider-agnostic payment orchestration.
@@ -39,7 +39,7 @@ export function Hero() {
         </div>
       </section>
 
-      <section className="px-[30px] pb-16 pt-[46px]">
+      <section className="px-[clamp(24px,3.4vw,46px)] pb-16 pt-[46px]">
         <HeroDemo />
       </section>
     </>

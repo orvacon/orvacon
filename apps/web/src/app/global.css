@@ -91,6 +91,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--text);
+}
+
 .orv-eyebrow {
   font-family: var(--font-mono);
   font-size: 11.5px;

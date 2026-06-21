@@ -19,8 +19,8 @@ export function Marquee() {
     ...items.map((label) => ({ id: `b-${label}`, label })),
   ];
   return (
-    <section className="overflow-hidden border-t border-dashed border-[var(--guide)] py-5">
-      <div className="flex w-max items-center gap-7 [animation:orv-marquee_50s_linear_infinite] hover:[animation-play-state:paused]">
+    <section className="group overflow-hidden border-t border-dashed border-[var(--guide)] py-5">
+      <div className="pointer-events-none flex w-max select-none items-center gap-7 [animation:orv-marquee_50s_linear_infinite] group-hover:[animation-play-state:paused]">
         {track.map((entry) => (
           <span
             key={entry.id}
