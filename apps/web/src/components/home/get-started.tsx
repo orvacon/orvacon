@@ -32,10 +32,7 @@ function CodeBar({ copy, children }: { copy?: string; children: ReactNode }) {
 
 export function GetStarted() {
   return (
-    <section
-      id="start"
-      className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[88px]"
-    >
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[88px]">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] items-start gap-x-[46px] gap-y-10">
         <div className="min-w-0">
           <div className="orv-eyebrow">06 — Get started</div>
