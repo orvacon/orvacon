@@ -60,7 +60,7 @@ export function Plan() {
           </div>
           <div className="mt-[26px] flex flex-wrap gap-3">
             <Link
-              href="/#start"
+              href="/docs/get-started"
               className="inline-flex items-center gap-2 rounded-[10px] bg-accent px-5 py-3 text-[14.5px] font-semibold text-white shadow-[0_10px_24px_-12px_var(--accent)] transition hover:-translate-y-px hover:brightness-[1.07]"
             >
               Get started

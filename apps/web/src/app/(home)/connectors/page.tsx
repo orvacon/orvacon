@@ -50,7 +50,7 @@ export default function ConnectorsPage() {
           </>
         }
         subtitle="Ship the verified Iyzico connector today; new gateways slot in behind the same contract without touching your application code."
-        primary={{ href: "/#start", label: "Get started" }}
+        primary={{ href: "/docs/get-started", label: "Get started" }}
         secondary={{ href: "https://github.com/orvacon/orvacon", label: "View on GitHub" }}
       />
     </>

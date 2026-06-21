@@ -85,7 +85,7 @@ export function MobileMenu() {
             transition={{ duration: 0.18 }}
           >
             <Link
-              href="/#start"
+              href="/docs/get-started"
               className="inline-flex items-center rounded-lg bg-accent px-3.5 py-2 text-[13.5px] font-medium text-white transition hover:brightness-110"
             >
               Get started
@@ -139,7 +139,7 @@ export function MobileMenu() {
                   </nav>
                   <motion.div variants={itemVariants} className="mt-7">
                     <Link
-                      href="/#start"
+                      href="/docs/get-started"
                       onClick={() => setOpen(false)}
                       className="flex items-center justify-center rounded-lg bg-accent px-5 py-3 text-[15px] font-medium text-white transition hover:brightness-110"
                     >

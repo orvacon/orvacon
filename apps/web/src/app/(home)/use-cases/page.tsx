@@ -43,7 +43,7 @@ export default function UseCasesPage() {
         eyebrow="Own the gateway · own the data"
         title="Sound like your stack?"
         subtitle="If you charge through your own gateway account, orvacon takes the orchestration off your plate — cleanly, and in your own runtime."
-        primary={{ href: "/#start", label: "Get started" }}
+        primary={{ href: "/docs/get-started", label: "Get started" }}
         secondary={{ href: "/architecture", label: "How it works" }}
       />
     </>

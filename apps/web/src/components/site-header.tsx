@@ -48,7 +48,7 @@ export function SiteHeader() {
             </a>
             <ThemeToggle />
             <Link
-              href="/#start"
+              href="/docs/get-started"
               className="inline-flex items-center gap-[7px] rounded-lg bg-accent px-3.5 py-2 text-[13.5px] font-medium text-white transition hover:brightness-110"
             >
               Get started

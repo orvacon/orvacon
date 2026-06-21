@@ -55,7 +55,7 @@ export default function PricingPage() {
           </>
         }
         subtitle="Install the packages, point a connector at your gateway, and ship. If it earns its place in your stack, sponsor it."
-        primary={{ href: "/#start", label: "Get started" }}
+        primary={{ href: "/docs/get-started", label: "Get started" }}
         secondary={{ href: "https://github.com/sponsors/orvacon", label: "Sponsor" }}
       />
     </>
