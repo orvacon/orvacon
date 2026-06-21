@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "@/components/icons";
 import { PageHero } from "@/components/page-hero";
+import { formatDate } from "@/lib/date";
 import { blogSource } from "@/lib/source";
 
 export const metadata: Metadata = {
@@ -45,7 +46,7 @@ export default function BlogPage() {
               className="group flex flex-col rounded-2xl border border-line bg-bg-2 p-6 transition-colors hover:border-[var(--accent-line)]"
             >
               <div className="font-mono text-[11.5px] text-fg-faint">
-                {post.data.date} · {post.data.author}
+                {formatDate(post.data.date)} · {post.data.author}
               </div>
               <h2 className="mt-2.5 text-[18px] font-semibold tracking-[-0.015em] transition-colors group-hover:text-accent">
                 {post.data.title}
