@@ -46,8 +46,13 @@ export function ScrambleText({
   );
 
   return (
-    <span ref={ref} className={className}>
-      {text}
+    <span className={`relative inline-block ${className ?? ""}`}>
+      <span aria-hidden="true" className="invisible">
+        {text}
+      </span>
+      <span ref={ref} aria-label={text} className="absolute inset-0">
+        {text}
+      </span>
     </span>
   );
 }

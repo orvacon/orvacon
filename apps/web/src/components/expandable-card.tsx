@@ -49,7 +49,7 @@ export function ExpandableCard({
 
       <AnimatePresence>
         {open ? (
-          <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
+          <>
             <motion.button
               type="button"
               aria-label="Close"
@@ -57,13 +57,14 @@ export function ExpandableCard({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-40 cursor-default bg-black/60 backdrop-blur-sm"
             />
             <motion.div
               layoutId={layoutId}
               role="dialog"
               aria-modal="true"
-              className="relative z-10 flex max-h-[88vh] w-full flex-col overflow-hidden rounded-t-2xl bg-bg-2 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.7)] sm:max-w-[560px] sm:rounded-2xl"
+              transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
+              className="fixed inset-x-0 bottom-0 z-50 flex max-h-[88vh] flex-col overflow-hidden rounded-t-2xl bg-bg-2 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.7)] sm:inset-0 sm:m-auto sm:h-fit sm:max-h-[85vh] sm:max-w-[560px] sm:rounded-2xl"
             >
               <button
                 ref={closeRef}
@@ -90,7 +91,7 @@ export function ExpandableCard({
                 {expanded ? <div className="border-t border-line px-6 py-6">{expanded}</div> : null}
               </div>
             </motion.div>
-          </div>
+          </>
         ) : null}
       </AnimatePresence>
     </>
