@@ -8,37 +8,6 @@ const navLinks = [
   { label: "Pricing", href: "/pricing" },
 ];
 
-function Mark() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      className="block"
-      aria-hidden="true"
-    >
-      <rect
-        x="1.6"
-        y="1.6"
-        width="20.8"
-        height="20.8"
-        rx="6"
-        stroke="var(--accent)"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M6.5 8 L11.5 12 L6.5 16"
-        stroke="var(--accent)"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M12 12 L17.5 12" stroke="var(--accent)" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function GitHubMark() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -51,12 +20,15 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-[color-mix(in_srgb,var(--bg)_76%,transparent)] backdrop-blur-md backdrop-saturate-150">
       <div className="mx-auto flex h-[62px] max-w-[1232px] items-center justify-between gap-6 px-7">
-        <div className="flex items-center gap-[11px]">
-          <Link href="/" className="flex items-center gap-[11px]" aria-label="orvacon home">
-            <Mark />
-            <span className="text-base font-semibold tracking-tight">orvacon</span>
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/"
+            className="text-base font-semibold tracking-tight"
+            aria-label="orvacon home"
+          >
+            orvacon
           </Link>
-          <span className="ml-0.5 rounded-[5px] border border-line px-1.5 py-0.5 font-mono text-[11px] text-fg-dim">
+          <span className="rounded-[5px] border border-line px-1.5 py-0.5 font-mono text-[11px] text-fg-dim">
             v0.1
           </span>
         </div>
