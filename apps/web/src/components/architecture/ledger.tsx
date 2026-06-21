@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import { DotField, SectionHeader } from "@/components/architecture/parts";
 import { CrossIcon, LinkIcon } from "@/components/icons";
+import { DotField, SectionHeader } from "@/components/section";
 
 const entries = [
   { tag: "entry #1 · created", hash: "hash a1f0…", prev: "prev — null" },

@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import { DotField, SectionHeader } from "@/components/architecture/parts";
 import { ArrowRight, Flow } from "@/components/icons";
+import { DotField, SectionHeader } from "@/components/section";
 
 const steps = [
   { n: "01", name: "created", note: "order recorded" },
