@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "motion/react";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 
+const transition = { duration: 0.4, ease: [0.32, 0.72, 0, 1] } as const;
+
 export function ExpandableCard({
   children,
   expanded,
@@ -34,8 +36,6 @@ export function ExpandableCard({
     };
   }, [open]);
 
-  const transition = { duration: 0.34, ease: [0.32, 0.72, 0, 1] } as const;
-
   return (
     <>
       <div className="relative h-full">
@@ -48,16 +48,14 @@ export function ExpandableCard({
             aria-haspopup="dialog"
             aria-label={label}
             transition={transition}
-            className="absolute inset-0 cursor-pointer text-left"
-          >
-            {children}
-          </motion.button>
+            className="absolute inset-0 cursor-pointer rounded-2xl"
+          />
         )}
       </div>
 
       <AnimatePresence>
         {open ? (
-          <>
+          <div className="fixed inset-0 z-50">
             <motion.button
               type="button"
               aria-label="Close"
@@ -65,41 +63,55 @@ export function ExpandableCard({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 cursor-default bg-black/60 backdrop-blur-sm"
+              transition={{ duration: 0.25 }}
+              className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
             />
-            <motion.div
-              layoutId={layoutId}
-              role="dialog"
-              aria-modal="true"
-              transition={transition}
-              className="fixed inset-x-0 bottom-0 z-50 flex max-h-[88vh] flex-col overflow-hidden rounded-t-2xl bg-bg-2 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.7)] sm:inset-0 sm:m-auto sm:h-fit sm:max-h-[85vh] sm:max-w-[560px] sm:rounded-2xl"
-            >
-              <button
-                ref={closeRef}
-                type="button"
-                aria-label="Close"
-                onClick={() => setOpen(false)}
-                className="absolute right-3.5 top-3.5 z-20 rounded-md p-1.5 text-fg-dim transition-colors hover:bg-bg-3 hover:text-fg"
+            <div className="absolute inset-x-0 bottom-0 sm:inset-0 sm:m-auto sm:h-fit sm:max-w-[560px]">
+              <motion.div
+                layoutId={layoutId}
+                aria-hidden="true"
+                transition={transition}
+                className="absolute inset-0 rounded-t-2xl border border-line bg-bg-2 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.7)] sm:rounded-2xl"
+              />
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-label={label}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut", delay: open ? 0.12 : 0 }}
+                className="relative max-h-[88vh] overflow-hidden sm:max-h-[85vh]"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  aria-hidden="true"
+                <button
+                  ref={closeRef}
+                  type="button"
+                  aria-label="Close"
+                  onClick={() => setOpen(false)}
+                  className="absolute right-3.5 top-3.5 z-20 rounded-md p-1.5 text-fg-dim transition-colors hover:bg-bg-3 hover:text-fg"
                 >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="no-scrollbar overflow-y-auto">
-                {children}
-                {expanded ? <div className="border-t border-line px-6 py-6">{expanded}</div> : null}
-              </div>
-            </motion.div>
-          </>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+                <div className="no-scrollbar max-h-[88vh] overflow-y-auto sm:max-h-[85vh]">
+                  {children}
+                  {expanded ? (
+                    <div className="border-t border-line px-6 py-6">{expanded}</div>
+                  ) : null}
+                </div>
+              </motion.div>
+            </div>
+          </div>
         ) : null}
       </AnimatePresence>
     </>
