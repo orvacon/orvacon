@@ -49,8 +49,9 @@ function FeatureCard({
         <div className="flex items-center gap-2.5">
           <span className="font-mono text-[11px] text-fg-faint">{n}</span>
           <Dialog
+            eyebrow="Why it's different"
+            index={n}
             title={title}
-            description="Details coming soon."
             trigger={
               <button
                 type="button"
