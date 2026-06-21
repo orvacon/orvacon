@@ -36,22 +36,24 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-1.5">
-          <a
-            href="https://github.com/orvacon/orvacon"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden items-center gap-[7px] rounded-[7px] px-2.5 py-[7px] text-[13.5px] text-fg transition-colors hover:bg-bg-2 sm:inline-flex"
-          >
-            <GitHubMark />
-            GitHub
-          </a>
-          <ThemeToggle />
-          <Link
-            href="/#start"
-            className="inline-flex items-center gap-[7px] rounded-lg bg-accent px-3.5 py-2 text-[13.5px] font-medium text-white transition hover:brightness-110"
-          >
-            Get started
-          </Link>
+          <div className="hidden items-center gap-1.5 md:flex">
+            <a
+              href="https://github.com/orvacon/orvacon"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-[7px] rounded-[7px] px-2.5 py-[7px] text-[13.5px] text-fg transition-colors hover:bg-bg-2"
+            >
+              <GitHubMark />
+              GitHub
+            </a>
+            <ThemeToggle />
+            <Link
+              href="/#start"
+              className="inline-flex items-center gap-[7px] rounded-lg bg-accent px-3.5 py-2 text-[13.5px] font-medium text-white transition hover:brightness-110"
+            >
+              Get started
+            </Link>
+          </div>
           <MobileMenu />
         </div>
       </div>
