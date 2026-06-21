@@ -1,3 +1,8 @@
+"use client";
+
+import { motion, useAnimationFrame, useMotionValue } from "motion/react";
+import { useRef, useState } from "react";
+
 const items = [
   "Provider-agnostic",
   "TypeScript-first",
@@ -13,14 +18,47 @@ const items = [
   "Idempotent by construction",
 ];
 
+const track = [
+  ...items.map((label) => ({ id: `a-${label}`, label })),
+  ...items.map((label) => ({ id: `b-${label}`, label })),
+];
+
 export function Marquee() {
-  const track = [
-    ...items.map((label) => ({ id: `a-${label}`, label })),
-    ...items.map((label) => ({ id: `b-${label}`, label })),
-  ];
+  const x = useMotionValue(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const factor = useRef(1);
+  const [paused, setPaused] = useState(false);
+
+  useAnimationFrame((_time, delta) => {
+    const node = trackRef.current;
+    if (!node) {
+      return;
+    }
+    const half = node.scrollWidth / 2;
+    if (half === 0) {
+      return;
+    }
+    // Ease the speed factor toward the target so hover stops and starts smoothly.
+    const targetFactor = paused ? 0 : 1;
+    factor.current += (targetFactor - factor.current) * Math.min(1, delta / 280);
+    let next = x.get() - (40 * factor.current * delta) / 1000;
+    if (next <= -half) {
+      next += half;
+    }
+    x.set(next);
+  });
+
   return (
-    <section className="group overflow-hidden border-t border-dashed border-[var(--guide)] py-5">
-      <div className="pointer-events-none flex w-max select-none items-center gap-7 [animation:orv-marquee_50s_linear_infinite] group-hover:[animation-play-state:paused]">
+    <section
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
+      className="overflow-hidden border-t border-dashed border-[var(--guide)] py-5"
+    >
+      <motion.div
+        ref={trackRef}
+        style={{ x }}
+        className="pointer-events-none flex w-max select-none items-center gap-7"
+      >
         {track.map((entry) => (
           <span
             key={entry.id}
@@ -32,7 +70,7 @@ export function Marquee() {
             </span>
           </span>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }

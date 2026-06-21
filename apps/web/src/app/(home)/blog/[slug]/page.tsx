@@ -32,7 +32,7 @@ export default async function BlogPost(props: PageProps<"/blog/[slug]">) {
 
   return (
     <article>
-      <header className="relative overflow-hidden border-b border-dashed border-[var(--guide)] px-6 pt-9 pb-[clamp(36px,5vw,56px)] text-center">
+      <header className="relative overflow-hidden border-b border-dashed border-[var(--guide)] px-6 pt-[clamp(56px,7vw,80px)] pb-[clamp(36px,5vw,56px)] text-center">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-[-70px] h-[360px] w-[130%] -translate-x-1/2 blur-[14px] [animation:orv-glow_6s_ease-in-out_infinite] [background:radial-gradient(46%_60%_at_50%_24%,color-mix(in_srgb,var(--accent)_16%,transparent),transparent_72%)]"
@@ -42,14 +42,7 @@ export default async function BlogPost(props: PageProps<"/blog/[slug]">) {
           className="pointer-events-none absolute inset-0 opacity-60 [background-image:radial-gradient(circle,var(--guide)_1px,transparent_1.2px)] [background-size:22px_22px] [mask-image:radial-gradient(78%_78%_at_50%_28%,#000,transparent)]"
         />
         <div className="relative z-[2] mx-auto max-w-[760px]">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-1.5 font-mono text-[12px] text-fg-dim transition-colors hover:text-fg"
-          >
-            <ArrowRight className="h-3.5 w-3.5 rotate-180" />
-            Blog
-          </Link>
-          <div className="orv-eyebrow mt-7">{page.data.tag ?? "Writing"}</div>
+          <div className="orv-eyebrow">{page.data.tag ?? "Writing"}</div>
           <h1 className="mx-auto mt-4 max-w-[20ch] text-[clamp(32px,5vw,54px)] font-semibold leading-[1.04] tracking-[-0.04em]">
             {page.data.title}
           </h1>
@@ -67,6 +60,39 @@ export default async function BlogPost(props: PageProps<"/blog/[slug]">) {
       <div className="mx-auto max-w-[720px] px-6 py-[clamp(40px,5vw,60px)] lg:max-w-[980px]">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_190px] lg:gap-12">
           <div className="min-w-0 lg:max-w-[720px]">
+            {toc.length > 0 ? (
+              <details className="group mb-8 rounded-xl border border-line bg-bg-2 lg:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 [&::-webkit-details-marker]:hidden">
+                  <span className="orv-eyebrow">On this page</span>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                    className="text-fg-faint transition-transform group-open:rotate-180"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </summary>
+                <nav className="flex flex-col gap-2 border-t border-line px-4 py-3.5 text-[13.5px]">
+                  {toc.map((item) => (
+                    <a
+                      key={item.url}
+                      href={item.url}
+                      className="text-fg-dim transition-colors hover:text-fg"
+                      style={{ paddingLeft: `${Math.max(item.depth - 2, 0) * 12}px` }}
+                    >
+                      {item.title}
+                    </a>
+                  ))}
+                </nav>
+              </details>
+            ) : null}
             <DocsBody>
               <Body components={getMDXComponents()} />
             </DocsBody>

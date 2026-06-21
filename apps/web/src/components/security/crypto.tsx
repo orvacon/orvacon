@@ -247,9 +247,8 @@ export function Crypto() {
 
         <Node x={150} y={165} w={160} variant="accent" corners>
           <Sym>
-            <rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5" />
-            <path d="M7 8 L11 12 L7 16" />
-            <path d="M11.5 12 L17 12" />
+            <circle cx="12" cy="12" r="2.6" />
+            <path d="M12 4.5v4.9M12 14.6v4.9M4.5 12h4.9M14.6 12h4.9" />
           </Sym>
           <span className="font-mono text-[12px] font-medium">orvacon</span>
           <span className="font-mono text-[10px] text-fg-dim">sign · private key</span>

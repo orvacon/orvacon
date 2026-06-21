@@ -88,13 +88,6 @@ export function Custody() {
             markerEnd="url(#c-acc)"
             className="[animation:orv-dash-flow_1s_linear_infinite]"
           />
-          <path
-            d="M850 224 C 760 300 640 344 562 344"
-            stroke="var(--accent)"
-            strokeWidth="1.5"
-            strokeDasharray="4 7"
-            opacity="0.6"
-          />
         </svg>
 
         <Node x={115} y={210} w={118}>
@@ -113,9 +106,8 @@ export function Custody() {
         </Node>
         <Node x={500} y={340} w={172} variant="accent" corners>
           <Sym>
-            <rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5" />
-            <path d="M7 8 L11 12 L7 16" />
-            <path d="M11.5 12 L17 12" />
+            <circle cx="12" cy="12" r="2.6" />
+            <path d="M12 4.5v4.9M12 14.6v4.9M4.5 12h4.9M14.6 12h4.9" />
           </Sym>
           <span className="font-mono text-[12px] font-medium">orvacon orchestrator</span>
           <span className="font-mono text-[10px] text-fg-dim">control only · no funds</span>

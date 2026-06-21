@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "@/components/icons";
+import { heroBadge } from "@/lib/shared";
 import { HeroDemo } from "./hero-demo";
 
 export function Hero() {
@@ -16,10 +17,13 @@ export function Hero() {
             behind a single type-safe interface — your code never knows which one is handling a
             payment.
           </p>
-          <div className="inline-flex items-center gap-1.5 whitespace-nowrap font-mono text-[12px] text-fg-faint">
-            v0.1 · Verified · Iyzico sandbox
-            <ArrowRight className="h-3 w-3" />
-          </div>
+          <Link
+            href={heroBadge.href}
+            className="group inline-flex items-center gap-1.5 whitespace-nowrap font-mono text-[12px] text-fg-faint transition-colors hover:text-fg-dim"
+          >
+            {heroBadge.label}
+            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
         <div className="mt-[30px] flex flex-wrap gap-3">
           <Link
