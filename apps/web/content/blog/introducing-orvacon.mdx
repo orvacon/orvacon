@@ -1,0 +1,29 @@
+---
+title: Introducing orvacon
+description: Provider-agnostic payment orchestration that runs in your own runtime — and never touches the money.
+author: orvacon
+date: "2026-06-22"
+---
+
+Taking card payments in TypeScript usually means picking a gateway and wiring your app straight to
+its SDK — its idioms, its quirks, its idea of what a "payment" is. Switch providers later and you
+rewrite all of that glue.
+
+orvacon takes a different shape. It's a **state machine wrapped around connectors**: gateways plug
+in behind one type-safe contract, and your application code calls `orva.authorize(order)` without
+knowing — or caring — which one actually runs the charge.
+
+## It never holds the money
+
+Funds move on the `card → your gateway account` path. orvacon only ever sits on the control path —
+coordinating the call, persisting state, signing events. There is no wallet, no balance, no payout.
+That keeps it out of money-transmitter regulation and off your PCI-custody scope.
+
+## Verify it, don't trust it
+
+Outbound webhooks are signed with Ed25519 and compared in constant time; the ledger is hash-chained,
+so tampering is evident without trusting anyone. The whole thing runs in your own runtime — there is
+no orvacon service in the request path to trust or breach.
+
+orvacon is v0.1 and open source. [Get started](/docs/get-started), or read how it
+[fits together](/architecture).

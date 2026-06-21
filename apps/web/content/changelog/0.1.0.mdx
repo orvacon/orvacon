@@ -1,0 +1,14 @@
+---
+title: "0.1.0"
+date: "2026-06-01"
+tag: first release
+---
+
+- **Iyzico 3-D Secure, verified** — `authorize → 3DS → capture → refund → reconcile`, end-to-end
+  against the gateway sandbox.
+- **Ed25519-signed webhooks** — asymmetric signatures, so a leaked verification key can't forge
+  events; timing-safe checks throughout.
+- **Schema with default-deny RLS** — generates a Postgres schema with row-level security locked
+  down out of the box.
+- **Hash-chained ledger** — append-only and tamper-evident by construction; idempotency enforced by
+  a database unique constraint.
