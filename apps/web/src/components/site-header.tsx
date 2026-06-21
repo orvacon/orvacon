@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrambleText } from "@/components/scramble-text";
 import { ThemeToggle } from "./theme-toggle";
 
 const navLinks = [
@@ -58,7 +59,7 @@ export function SiteHeader() {
             href="/#start"
             className="inline-flex items-center gap-[7px] rounded-lg bg-accent px-3.5 py-2 text-[13.5px] font-medium text-white transition hover:brightness-110"
           >
-            Get started
+            <ScrambleText text="Get started" />
           </Link>
         </div>
       </div>
