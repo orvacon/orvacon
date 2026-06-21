@@ -73,7 +73,7 @@ export function ThreeDSFlow() {
   return (
     <div
       ref={root}
-      className="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] items-start gap-[22px]"
+      className="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] items-stretch gap-[22px]"
     >
       <div className="flex flex-col gap-2.5">
         {steps.map((step, index) => {
@@ -107,12 +107,12 @@ export function ThreeDSFlow() {
         })}
       </div>
 
-      <div className="relative">
+      <div className="relative h-full">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute blur-[10px] [background:radial-gradient(50%_50%_at_60%_30%,color-mix(in_srgb,var(--accent)_16%,transparent),transparent_70%)] [inset:-10%_-6%]"
         />
-        <div className="relative z-[2] overflow-hidden rounded-[13px] border border-[#26262a] bg-[#161618] shadow-[0_30px_70px_-45px_rgba(0,0,0,0.8)]">
+        <div className="relative z-[2] flex h-full flex-col overflow-hidden rounded-[13px] border border-[#26262a] bg-[#161618] shadow-[0_30px_70px_-45px_rgba(0,0,0,0.8)]">
           <div className="flex items-center justify-between border-b border-[#232327] bg-[#0f0f11] px-[15px] py-3">
             <span className="font-mono text-[12px] text-[#8c8c86]">
               verification · iyzico sandbox
@@ -121,7 +121,7 @@ export function ThreeDSFlow() {
               PASS
             </span>
           </div>
-          <div className="relative min-h-[184px] p-5">
+          <div className="relative flex flex-1 flex-col justify-center p-5">
             <AnimatePresence mode="wait">
               <motion.div
                 key={active}
