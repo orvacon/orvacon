@@ -11,6 +11,7 @@ const marketing = [
   "/pricing",
   "/use-cases",
   "/roadmap",
+  "/changelog",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight, Flow } from "@/components/icons";
 import { RevealOnView } from "@/components/reveal-on-view";
 
@@ -35,15 +36,13 @@ export function Changelog() {
             Shipped in the open.
           </h2>
         </div>
-        <a
-          href="https://github.com/orvacon/orvacon/releases"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/changelog"
           className="inline-flex items-center gap-[7px] pb-1.5 font-mono text-[12.5px] text-fg-dim transition-colors hover:text-fg"
         >
           View all releases
           <ArrowRight className="h-3.5 w-3.5" />
-        </a>
+        </Link>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-line bg-bg-2">
