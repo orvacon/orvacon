@@ -4,11 +4,32 @@ date: "2026-06-01"
 tag: first release
 ---
 
-- **Iyzico 3-D Secure, verified** — `authorize → 3DS → capture → refund → reconcile`, end-to-end
-  against the gateway sandbox.
-- **Ed25519-signed webhooks** — asymmetric signatures, so a leaked verification key can't forge
-  events; timing-safe checks throughout.
-- **Schema with default-deny RLS** — generates a Postgres schema with row-level security locked
-  down out of the box.
-- **Hash-chained ledger** — append-only and tamper-evident by construction; idempotency enforced by
-  a database unique constraint.
+The first release you can take a real payment with: install orvacon, generate your schema, run a
+sandbox 3-D Secure payment end to end, then capture, refund, and verify a signed webhook.
+
+#### Payments
+
+- **Iyzico 3-D Secure** — the full two-step flow, `authorize → 3DS → capture → refund`. The
+  orchestrator persists `requires_action` between the two 3DS requests and trusts the signed
+  finalize response, never the raw callback POST.
+- **Compile-time state machine** — `created → authorized → captured → refunded`, plus
+  `requires_action`, `failed`, and `voided`, enforced through discriminated unions so an illegal
+  transition won't type-check.
+- **Money as integer minor units** — a branded `Money` type; floats never reach the core.
+
+#### Security
+
+- **Ed25519-signed webhooks** — orvacon signs outbound events with an asymmetric key, so a leaked
+  verification key can't forge events. The gateway's own inbound signature is verified separately.
+- **Timing-safe by default** — every signature and token comparison runs in constant time, never
+  `===`.
+- **Hash-chained ledger** — append-only and tamper-evident by construction, written in the same
+  transaction as the state transition.
+
+#### Database & tooling
+
+- **Default-deny RLS** — the Supabase adapter generates a Postgres schema with row-level security
+  locked down out of the box.
+- **Idempotency by constraint** — enforced by a database unique constraint, not a cache.
+- **`npx orvacon` and the Next.js adapter** — scaffold schema and config from the CLI, then wire the
+  callback and webhook routes with `toNextJsHandler`.
