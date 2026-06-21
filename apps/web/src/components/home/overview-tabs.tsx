@@ -106,7 +106,8 @@ function TypesPanel() {
           {" | "}
           <span className="text-[#9fce7e]">"failed"</span>
           {" | "}
-          <span className="text-[#9fce7e]">"voided"</span>;
+          <span className="text-[#9fce7e]">"voided"</span>
+          {";"}
         </code>
       </pre>
     </div>
