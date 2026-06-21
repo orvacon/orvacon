@@ -79,7 +79,7 @@ export function ExpandableCard({
                 type="button"
                 aria-label="Close"
                 onClick={() => setOpen(false)}
-                className="absolute right-3.5 top-3.5 z-20 rounded-md p-1.5 text-fg-dim transition-colors hover:bg-bg-3 hover:text-fg"
+                className="absolute right-4 top-4 z-20 rounded-md p-1.5 text-fg-dim outline-none transition-colors hover:bg-bg-3 hover:text-fg focus-visible:ring-2 focus-visible:ring-[var(--accent-line)]"
               >
                 <svg
                   width="18"
