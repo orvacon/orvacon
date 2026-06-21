@@ -2,7 +2,7 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, type Variants } from "motion/react";
 import { useRef, useState } from "react";
 import { Flow } from "@/components/icons";
 import { Check } from "./decor";
@@ -65,15 +65,29 @@ const panels = [
   },
 ];
 
+const panelVariants: Variants = {
+  enter: (dir: number) => ({ opacity: 0, y: dir > 0 ? -20 : 20 }),
+  center: { opacity: 1, y: 0 },
+  exit: (dir: number) => ({ opacity: 0, y: dir > 0 ? 20 : -20 }),
+};
+
 export function ThreeDSFlow() {
   const [active, setActive] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const activeRef = useRef(0);
   const root = useRef<HTMLDivElement>(null);
+
+  const goTo = (index: number) => {
+    setDirection(index >= activeRef.current ? 1 : -1);
+    activeRef.current = index;
+    setActive(index);
+  };
 
   useGSAP(
     () => {
       const tl = gsap.timeline({ repeat: -1 });
       steps.forEach((_, index) => {
-        tl.call(() => setActive(index), undefined, index * 2.6);
+        tl.call(() => goTo(index), undefined, index * 2.6);
       });
       tl.to({}, { duration: 2.6 });
     },
@@ -95,7 +109,7 @@ export function ThreeDSFlow() {
             <button
               key={step.n}
               type="button"
-              onClick={() => setActive(index)}
+              onClick={() => goTo(index)}
               className={`flex items-start gap-3.5 rounded-[11px] px-[18px] py-4 text-left transition-colors duration-300 ${
                 on
                   ? "border-[1.5px] border-accent bg-[var(--accent-soft)]"
@@ -135,13 +149,15 @@ export function ThreeDSFlow() {
             </span>
           </div>
           <div className="relative flex flex-1 flex-col justify-center p-5">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={active}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.28 }}
+                custom={direction}
+                variants={panelVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
               >
                 {activeStep && activePanel ? (
                   <>
