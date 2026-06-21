@@ -12,7 +12,7 @@ const steps = [
 
 export function Lifecycle() {
   return (
-    <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[84px]">
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[84px]">
       <SectionHeader
         eyebrow="02 — Request lifecycle"
         title="One payment, persisted at every step."

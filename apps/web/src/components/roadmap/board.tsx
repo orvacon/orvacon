@@ -105,7 +105,7 @@ function Header({
 
 export function Board() {
   return (
-    <section className="px-[30px] pb-[84px]">
+    <section className="px-[clamp(24px,3.4vw,46px)] pb-[84px]">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] items-start gap-[18px]">
         <Column
           header={

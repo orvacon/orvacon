@@ -175,7 +175,7 @@ function TwoWorldsCard() {
 
 export function Crypto() {
   return (
-    <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[84px]">
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[84px]">
       <SectionHeader
         eyebrow="02 — Webhook integrity"
         title="A leaked key can't forge an event."

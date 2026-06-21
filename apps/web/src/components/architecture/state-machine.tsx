@@ -20,7 +20,7 @@ const flow = "[animation:orv-dash-flow_1s_linear_infinite]";
 
 export function StateMachine() {
   return (
-    <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[84px]">
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[84px]">
       <SectionHeader
         eyebrow="03 — State machine"
         title="Invalid transitions don't type-check."

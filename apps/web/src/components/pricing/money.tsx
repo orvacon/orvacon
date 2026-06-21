@@ -8,7 +8,7 @@ const rows = [
 
 export function Money() {
   return (
-    <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[84px]">
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[84px]">
       <SectionHeader
         eyebrow="01 — Where the money goes"
         title="You pay your gateway. Not us."

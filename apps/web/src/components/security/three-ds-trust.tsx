@@ -4,7 +4,7 @@ import { DiagramFrame, Node, Sym } from "@/components/security/parts";
 
 export function ThreeDSTrust() {
   return (
-    <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[84px]">
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[84px]">
       <SectionHeader
         eyebrow="03 — 3-D Secure trust"
         title="The callback POST is never trusted."

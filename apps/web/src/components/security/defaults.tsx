@@ -70,7 +70,7 @@ const defaults: { id: string; icon: ReactNode; title: string; desc: string }[] =
 
 export function Defaults() {
   return (
-    <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[84px]">
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[84px]">
       <div className="mx-auto mb-11 max-w-[640px] text-center">
         <div className="orv-eyebrow">04 — Defaults</div>
         <h2 className="mt-3.5 text-[clamp(26px,3.4vw,42px)] font-semibold leading-[1.08] tracking-[-0.03em]">

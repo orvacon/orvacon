@@ -10,7 +10,7 @@ const entries = [
 
 export function Ledger() {
   return (
-    <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[84px]">
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[84px]">
       <SectionHeader
         eyebrow="04 — The ledger"
         title="Append-only, and it proves it."

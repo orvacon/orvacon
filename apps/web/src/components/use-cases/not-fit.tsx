@@ -20,7 +20,7 @@ const cases = [
 
 export function NotFit() {
   return (
-    <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[84px]">
+    <section className="border-t border-dashed border-[var(--guide)] px-[clamp(24px,3.4vw,46px)] py-[84px]">
       <div className="mb-2.5 font-mono text-[11.5px] uppercase tracking-[0.16em] text-[#e08a72]">
         Not the right fit
       </div>

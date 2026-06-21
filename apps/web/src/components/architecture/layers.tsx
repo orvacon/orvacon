@@ -11,7 +11,7 @@ const coreItems = [
 
 export function Layers() {
   return (
-    <section className="px-[30px] pb-[84px] pt-10">
+    <section className="px-[clamp(24px,3.4vw,46px)] pb-[84px] pt-10">
       <div className="mb-7 flex flex-wrap items-baseline justify-between gap-4">
         <div className="orv-eyebrow">01 — The layers</div>
         <div className="font-mono text-[12px] text-fg-faint">one boundary per concern</div>

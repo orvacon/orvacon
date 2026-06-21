@@ -16,7 +16,7 @@ export function PageHero({
   footer?: ReactNode;
 }) {
   return (
-    <section className="relative px-[30px] pb-16 pt-[84px] text-center">
+    <section className="relative px-[clamp(24px,3.4vw,46px)] pb-16 pt-[84px] text-center">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-[-40px] h-[340px] w-[90%] -translate-x-1/2 blur-[10px] [animation:orv-glow_6s_ease-in-out_infinite] [background:radial-gradient(50%_60%_at_50%_30%,color-mix(in_srgb,var(--accent)_22%,transparent),transparent_68%)]"
