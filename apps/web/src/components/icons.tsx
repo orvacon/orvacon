@@ -77,7 +77,7 @@ export function Flow({ steps, className }: { steps: string[]; className?: string
     >
       {steps.map((step, i) => (
         <Fragment key={step}>
-          {i > 0 ? <ArrowRight className="h-[0.85em] w-[0.85em] shrink-0 text-fg-faint" /> : null}
+          {i > 0 ? <ArrowRight className="h-[0.85em] w-[0.85em] shrink-0 opacity-50" /> : null}
           <span>{step}</span>
         </Fragment>
       ))}
