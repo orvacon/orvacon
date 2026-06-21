@@ -161,3 +161,21 @@ html > body[data-scroll-locked] {
     transform: translate(-50%, -50%) scale(1);
   }
 }
+
+@keyframes orv-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes orv-slide-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
