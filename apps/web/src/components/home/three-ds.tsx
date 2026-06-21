@@ -1,34 +1,4 @@
-import { VerifyTranscript } from "./verify-transcript";
-
-const steps: {
-  n: string;
-  title: string;
-  desc: string;
-  active?: boolean;
-  badge?: string;
-  green?: boolean;
-}[] = [
-  { n: "01", title: "authorize()", desc: "Card details submitted to the gateway." },
-  {
-    n: "02",
-    title: "requires_action",
-    desc: "State saved; the browser is redirected to the 3DS challenge.",
-    active: true,
-    badge: "persisted",
-  },
-  {
-    n: "03",
-    title: "finalize",
-    desc: "Signed finalize response verified — the callback POST is never trusted.",
-  },
-  {
-    n: "04",
-    title: "webhook",
-    desc: "Signed event emitted; captured state committed to the ledger.",
-    badge: "Ed25519",
-    green: true,
-  },
-];
+import { ThreeDSFlow } from "./three-ds-flow";
 
 export function ThreeDS() {
   return (
@@ -50,49 +20,7 @@ export function ThreeDS() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] items-start gap-[22px]">
-        <div className="flex flex-col gap-2.5">
-          {steps.map((step) => (
-            <div
-              key={step.n}
-              className={`flex items-start gap-3.5 rounded-[11px] px-[18px] py-4 ${
-                step.active
-                  ? "border-[1.5px] border-accent bg-[var(--accent-soft)]"
-                  : "border border-line bg-bg-2"
-              }`}
-            >
-              <span
-                className={`mt-0.5 font-mono text-[11px] ${step.active ? "text-accent" : "text-fg-faint"}`}
-              >
-                {step.n}
-              </span>
-              <div className="flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span
-                    className={`font-mono text-[13.5px] ${step.active ? "text-accent" : "text-fg"}`}
-                  >
-                    {step.title}
-                  </span>
-                  {step.badge ? (
-                    <span
-                      className={
-                        step.green
-                          ? "rounded bg-[rgba(63,185,126,0.12)] px-1.5 py-px font-mono text-[10px] text-[#3fb97e]"
-                          : "rounded border border-[var(--accent-line)] px-1.5 py-px font-mono text-[10px] text-accent"
-                      }
-                    >
-                      {step.badge}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 text-[13px] leading-[1.5] text-fg-dim">{step.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <VerifyTranscript />
-      </div>
+      <ThreeDSFlow />
     </section>
   );
 }
