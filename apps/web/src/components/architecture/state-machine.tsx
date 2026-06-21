@@ -1,4 +1,4 @@
-import { DotField, SectionHeader } from "@/components/architecture/parts";
+import { DotField, SectionHeader } from "@/components/section";
 
 const toneClass = {
   plain: "border border-line-2 bg-bg-3 text-fg",

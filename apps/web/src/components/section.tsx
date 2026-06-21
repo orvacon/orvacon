@@ -13,7 +13,7 @@ export function SectionHeader({
     <div className="mb-10 grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] items-start gap-x-14 gap-y-[30px]">
       <div className="min-w-0">
         <div className="orv-eyebrow">{eyebrow}</div>
-        <h2 className="mt-4 max-w-[15ch] text-[clamp(26px,3.4vw,42px)] font-semibold leading-[1.08] tracking-[-0.03em]">
+        <h2 className="mt-4 max-w-[16ch] text-[clamp(26px,3.4vw,42px)] font-semibold leading-[1.08] tracking-[-0.03em]">
           {title}
         </h2>
       </div>
