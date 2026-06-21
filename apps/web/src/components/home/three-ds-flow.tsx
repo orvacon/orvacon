@@ -4,6 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
+import { Flow } from "@/components/icons";
 import { Check } from "./decor";
 
 const steps = [
@@ -30,25 +31,37 @@ const panels = [
     title: "authorize",
     badge: "201",
     badgeClass: "bg-[rgba(116,167,245,0.12)] text-[#74a7f5]",
-    lines: ["card details → gateway", "3-D Secure requested"],
+    lines: [
+      { id: "authorize-flow", text: <Flow steps={["card details", "gateway"]} /> },
+      { id: "authorize-3ds", text: "3-D Secure requested" },
+    ],
   },
   {
     title: "persisted",
     badge: "requires_action",
     badgeClass: "bg-[var(--accent-soft)] text-accent",
-    lines: ["state saved to your database", "browser → bank 3DS challenge"],
+    lines: [
+      { id: "persisted-db", text: "state saved to your database" },
+      { id: "persisted-flow", text: <Flow steps={["browser", "bank 3DS challenge"]} /> },
+    ],
   },
   {
     title: "verified",
     badge: "finalize",
     badgeClass: "bg-[rgba(159,206,126,0.12)] text-[#9fce7e]",
-    lines: ["signed finalize response checked", "the raw callback POST is never trusted"],
+    lines: [
+      { id: "verified-checked", text: "signed finalize response checked" },
+      { id: "verified-untrusted", text: "the raw callback POST is never trusted" },
+    ],
   },
   {
     title: "captured",
     badge: "Ed25519",
     badgeClass: "bg-[rgba(63,185,126,0.12)] text-[#3fb97e]",
-    lines: ["payment.captured emitted", "committed to the hash-chained ledger"],
+    lines: [
+      { id: "captured-emitted", text: "payment.captured emitted" },
+      { id: "captured-ledger", text: "committed to the hash-chained ledger" },
+    ],
   },
 ];
 
@@ -149,11 +162,11 @@ export function ThreeDSFlow() {
                     <div className="mt-6 flex flex-col gap-3.5">
                       {activePanel.lines.map((line) => (
                         <div
-                          key={line}
+                          key={line.id}
                           className="flex items-center gap-3 font-mono text-[15.5px] text-[#c9c7bf]"
                         >
                           <Check className="shrink-0 text-[#3fb97e]" />
-                          {line}
+                          {line.text}
                         </div>
                       ))}
                     </div>

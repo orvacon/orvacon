@@ -1,9 +1,10 @@
 import { Fragment } from "react";
 import { DotField, SectionHeader } from "@/components/architecture/parts";
+import { ArrowRight, Flow } from "@/components/icons";
 
 const steps = [
   { n: "01", name: "created", note: "order recorded" },
-  { n: "02", name: "authorized", note: "card → gateway" },
+  { n: "02", name: "authorized", note: <Flow steps={["card", "gateway"]} /> },
   { n: "03", name: "requires_action", note: "3DS · persisted", active: true },
   { n: "04", name: "captured", note: "finalize verified" },
   { n: "05", name: "reconciled", note: "ledger committed" },
@@ -23,7 +24,11 @@ export function Lifecycle() {
           <div className="flex min-w-[760px] items-stretch gap-2.5">
             {steps.map((step, i) => (
               <Fragment key={step.name}>
-                {i > 0 ? <div className="flex items-center text-accent">→</div> : null}
+                {i > 0 ? (
+                  <div className="flex items-center text-accent">
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                ) : null}
                 <div
                   className={`flex-1 rounded-[11px] px-3.5 py-[15px] ${
                     step.active

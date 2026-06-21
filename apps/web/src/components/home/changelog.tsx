@@ -1,9 +1,15 @@
+import { ArrowRight, Flow } from "@/components/icons";
 import { RevealOnView } from "@/components/reveal-on-view";
 
 const changes = [
   {
     title: "Iyzico 3-D Secure, verified",
-    desc: "authorize → 3DS → capture → refund → reconcile, end-to-end against the gateway sandbox.",
+    desc: (
+      <>
+        <Flow steps={["authorize", "3DS", "capture", "refund", "reconcile"]} />, end-to-end against
+        the gateway sandbox.
+      </>
+    ),
   },
   {
     title: "Ed25519-signed webhooks",
@@ -38,7 +44,8 @@ export function Changelog() {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-[7px] pb-1.5 font-mono text-[12.5px] text-fg-dim transition-colors hover:text-fg"
         >
-          View all releases →
+          View all releases
+          <ArrowRight className="h-3.5 w-3.5" />
         </a>
       </div>
 

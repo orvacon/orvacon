@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "@/components/icons";
 import { HeroDemo } from "./hero-demo";
 
 export function Hero() {
@@ -15,8 +16,9 @@ export function Hero() {
             behind a single type-safe interface — your code never knows which one is handling a
             payment.
           </p>
-          <div className="whitespace-nowrap font-mono text-[12px] text-fg-faint">
-            v0.1 · Verified · Iyzico sandbox →
+          <div className="inline-flex items-center gap-1.5 whitespace-nowrap font-mono text-[12px] text-fg-faint">
+            v0.1 · Verified · Iyzico sandbox
+            <ArrowRight className="h-3 w-3" />
           </div>
         </div>
         <div className="mt-[30px] flex flex-wrap gap-3">
