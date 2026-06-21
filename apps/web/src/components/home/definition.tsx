@@ -10,6 +10,19 @@ const isnt = [
 export function Definition() {
   return (
     <section className="border-t border-dashed border-[var(--guide)] px-[30px] py-[88px]">
+      <div className="mb-[42px] grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] items-start gap-x-14 gap-y-[30px]">
+        <div className="min-w-0">
+          <div className="orv-eyebrow">In short</div>
+          <h2 className="mt-4 max-w-[16ch] text-[clamp(28px,3.6vw,44px)] font-semibold leading-[1.08] tracking-[-0.03em]">
+            What orvacon is — and isn't.
+          </h2>
+        </div>
+        <div className="flex h-full min-w-0 items-end">
+          <p className="m-0 max-w-[50ch] text-[16.5px] leading-[1.62] text-fg-dim">
+            One line you can hold onto, and three things it deliberately is not.
+          </p>
+        </div>
+      </div>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-[18px]">
         <div className="relative overflow-hidden rounded-2xl border border-[var(--accent-line)] bg-[var(--accent-soft)] p-8">
           <div
