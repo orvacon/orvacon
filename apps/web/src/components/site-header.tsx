@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MobileMenu } from "./mobile-menu";
 import { ThemeToggle } from "./theme-toggle";
 
 const navLinks = [
@@ -20,18 +21,9 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-[color-mix(in_srgb,var(--bg)_76%,transparent)] backdrop-blur-md backdrop-saturate-150">
       <div className="mx-auto flex h-[62px] max-w-[1232px] items-center justify-between gap-6 px-7">
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/"
-            className="text-base font-semibold tracking-tight"
-            aria-label="orvacon home"
-          >
-            orvacon
-          </Link>
-          <span className="rounded-[5px] border border-line px-1.5 py-0.5 font-mono text-[11px] text-fg-dim">
-            v0.1
-          </span>
-        </div>
+        <Link href="/" className="text-base font-semibold tracking-tight" aria-label="orvacon home">
+          orvacon
+        </Link>
         <nav className="hidden items-center gap-0.5 md:flex">
           {navLinks.map((link) => (
             <Link
@@ -60,6 +52,7 @@ export function SiteHeader() {
           >
             Get started
           </Link>
+          <MobileMenu />
         </div>
       </div>
     </header>
