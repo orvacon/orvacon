@@ -1,7 +1,10 @@
 import { Comparison } from "@/components/home/comparison";
+import { Definition } from "@/components/home/definition";
 import { Features } from "@/components/home/features";
 import { Hero } from "@/components/home/hero";
 import { Overview } from "@/components/home/overview";
+import { Status } from "@/components/home/status";
+import { ThreeDS } from "@/components/home/three-ds";
 
 export default function HomePage() {
   return (
@@ -10,6 +13,9 @@ export default function HomePage() {
       <Overview />
       <Comparison />
       <Features />
+      <ThreeDS />
+      <Definition />
+      <Status />
     </div>
   );
 }
