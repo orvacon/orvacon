@@ -1,7 +1,33 @@
+import type { ReactNode } from "react";
 import { CopyButton } from "@/components/copy-button";
 
 const installCommand =
   "bun add @orvacon/paykit @orvacon/connector-iyzico @orvacon/adapter-supabase @orvacon/adapter-nextjs postgres";
+
+function Step({ n, title, children }: { n: string; title: string; children: ReactNode }) {
+  return (
+    <div className="border-b border-line p-5 last:border-b-0">
+      <div className="flex items-center gap-3">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line font-mono text-[11px] text-fg-dim">
+          {n}
+        </span>
+        <span className="text-[14px] font-medium text-fg">{title}</span>
+      </div>
+      <div className="mt-3 pl-9">{children}</div>
+    </div>
+  );
+}
+
+function CodeBar({ copy, children }: { copy?: string; children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 rounded-[10px] border border-[#26262a] bg-[#161618] px-3.5 py-2.5">
+      <pre className="no-scrollbar m-0 flex-1 overflow-x-auto font-mono text-[12.5px] leading-[1.6] text-[#c9c7bf]">
+        <code>{children}</code>
+      </pre>
+      {copy ? <CopyButton text={copy} /> : null}
+    </div>
+  );
+}
 
 export function GetStarted() {
   return (
@@ -36,41 +62,30 @@ export function GetStarted() {
             </span>
           </div>
         </div>
-        <div className="flex min-w-0 flex-col gap-3.5">
-          <div className="overflow-hidden rounded-xl border border-[#26262a] bg-[#161618]">
-            <div className="flex items-center justify-between border-b border-[#232327] bg-[#0f0f11] px-[13px] py-2.5">
-              <span className="font-mono text-[12px] text-[#8c8c86]">install</span>
-              <CopyButton text={installCommand} />
-            </div>
-            <pre className="m-0 overflow-x-auto px-4 py-[15px] font-mono text-[12.5px] leading-[1.7] text-[#c9c7bf]">
-              <code>
-                <span className="text-[#74a7f5]">bun</span> add{" "}
-                <span className="text-[#9fce7e]">@orvacon/paykit</span>{" "}
-                <span className="text-[#9fce7e]">@orvacon/connector-iyzico</span>{" "}
-                <span className="text-[#9fce7e]">@orvacon/adapter-supabase</span>{" "}
-                <span className="text-[#9fce7e]">@orvacon/adapter-nextjs</span>{" "}
-                <span className="text-[#9fce7e]">postgres</span>
-              </code>
-            </pre>
-          </div>
-          <div className="overflow-hidden rounded-xl border border-[#26262a] bg-[#161618]">
-            <div className="flex items-center border-b border-[#232327] bg-[#0f0f11] px-[13px] py-2.5">
-              <span className="font-mono text-[12px] text-[#8c8c86]">cli</span>
-            </div>
-            <pre className="m-0 overflow-x-auto px-4 py-[15px] font-mono text-[12.5px] leading-[1.9] text-[#c9c7bf]">
-              <code>
-                <span className="text-[#6a6a72]">{"# generate webhook signing keys"}</span>
-                {"\n"}
-                <span className="text-[#8a8a86]">$</span> npx orvacon{" "}
-                <span className="text-[#74a7f5]">keys</span>
-                {"\n"}
-                <span className="text-[#6a6a72]">{"# scaffold the database schema"}</span>
-                {"\n"}
-                <span className="text-[#8a8a86]">$</span> npx orvacon{" "}
-                <span className="text-[#74a7f5]">generate</span>
-              </code>
-            </pre>
-          </div>
+
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-bg-2">
+          <Step n="1" title="Install the core, a connector, and your adapters">
+            <CodeBar copy={installCommand}>
+              <span className="text-[#74a7f5]">bun</span> add{" "}
+              <span className="text-[#9fce7e]">@orvacon/paykit</span>{" "}
+              <span className="text-[#9fce7e]">@orvacon/connector-iyzico</span>{" "}
+              <span className="text-[#9fce7e]">@orvacon/adapter-supabase</span>{" "}
+              <span className="text-[#9fce7e]">@orvacon/adapter-nextjs</span>{" "}
+              <span className="text-[#9fce7e]">postgres</span>
+            </CodeBar>
+          </Step>
+          <Step n="2" title="Generate your Ed25519 webhook signing keys">
+            <CodeBar>
+              <span className="text-[#8a8a86]">$</span> npx orvacon{" "}
+              <span className="text-[#74a7f5]">keys</span>
+            </CodeBar>
+          </Step>
+          <Step n="3" title="Generate the schema with default-deny RLS">
+            <CodeBar>
+              <span className="text-[#8a8a86]">$</span> npx orvacon{" "}
+              <span className="text-[#74a7f5]">generate</span>
+            </CodeBar>
+          </Step>
         </div>
       </div>
     </section>
