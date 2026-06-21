@@ -34,7 +34,7 @@ export function CTA({
     </>
   ),
   subtitle = "Wire up one type-safe API, keep money custody with your own gateway, and ship the verified Iyzico 3-D Secure flow today.",
-  primary = { href: "/#start", label: "Get started" },
+  primary = { href: "/docs/get-started", label: "Get started" },
   secondary = { href: "https://github.com/orvacon/orvacon", label: "View on GitHub" },
 }: {
   eyebrow?: ReactNode;

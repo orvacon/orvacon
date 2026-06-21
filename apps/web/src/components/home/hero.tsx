@@ -23,7 +23,7 @@ export function Hero() {
         </div>
         <div className="mt-[30px] flex flex-wrap gap-3">
           <Link
-            href="/#start"
+            href="/docs/get-started"
             className="inline-flex items-center gap-2 rounded-[9px] bg-accent px-5 py-[11px] text-[14.5px] font-medium text-white shadow-[0_10px_28px_-14px_var(--accent)] transition hover:-translate-y-px hover:brightness-[1.07]"
           >
             Get started
