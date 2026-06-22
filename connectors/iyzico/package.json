@@ -25,7 +25,7 @@
     "@orvacon/cryptokit": "^0.1.1"
   },
   "peerDependencies": {
-    "@orvacon/paykit": "^0.1.1"
+    "@orvacon/paykit": ">=0.2.0 <1.0.0"
   },
   "devDependencies": {
     "@orvacon/paykit": "workspace:*",
