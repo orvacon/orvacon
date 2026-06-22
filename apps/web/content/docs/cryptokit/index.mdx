@@ -1,17 +1,77 @@
 ---
 title: cryptokit
-description: Ed25519 signing primitives.
+description: The Web Crypto primitives behind orvacon's two signature worlds.
 ---
 
-`@orvacon/cryptokit` provides the signing and comparison primitives orvacon uses for webhook
-integrity.
+`@orvacon/cryptokit` is the small, dependency-free crypto layer the rest of orvacon is built on. It
+wraps **Web Crypto only** — no Node `crypto`, no native addon — so it runs unchanged in Node, Bun,
+Deno, edge runtimes, and the browser. You rarely call it directly; the core and connectors do. It's
+exported because the guarantees here are the ones a payments library must not get wrong.
 
-- **Ed25519 keypairs** — outbound webhooks are signed with an asymmetric private key that never
-  leaves orvacon; your endpoint verifies with the public key. A leaked verification key can't forge
-  events.
-- **Constant-time comparison** — every signature and token is compared in constant time, so an
-  attacker can't recover it byte-by-byte by timing verification.
+```bash
+bun add @orvacon/cryptokit
+```
 
-<Callout type="warn">
-Never compare a signature with `===`. Use the timing-safe comparison — orvacon does, everywhere.
+## Two signature worlds
+
+orvacon signs and verifies in two places that must never be conflated:
+
+| | Direction | Scheme | Key |
+| --- | --- | --- | --- |
+| **Outbound webhook** | orvacon → your endpoint | **Ed25519** (asymmetric) | `orvsk_…` signs, `orvpk_…` verifies |
+| **Inbound callback** | gateway → orvacon | the gateway's own HMAC | the gateway's shared secret |
+
+Asymmetric outbound means a leaked *verification* key can't forge events — your endpoint holds only
+the public key. The gateway side stays symmetric because that's what the gateway specifies.
+
+## Webhook signing
+
+The high-level pair the core uses for outbound delivery — sign with the secret, verify with the
+public key:
+
+```ts
+import { signWebhook, verifyWebhook } from "@orvacon/cryptokit";
+
+const signature = await signWebhook(secretKey, payload); // orvsk_… → header value
+const ok = await verifyWebhook(publicKey, payload, signature); // orvpk_… on your side
+```
+
+### Keys
+
+```ts
+import { generateSigningKeyPair, parseSecretKey, parsePublicKey } from "@orvacon/cryptokit";
+
+const { secretKey, publicKey } = await generateSigningKeyPair(); // orvsk_… / orvpk_…
+```
+
+Keys are prefixed (`orvsk_` secret, `orvpk_` public) so a misplaced key is obvious on sight, and
+parsing rejects the wrong kind. The [CLI](/docs/cli) generates a pair for you with `orvacon keys`.
+
+## Primitives
+
+Everything the higher-level helpers are built from is exported too:
+
+| | |
+| --- | --- |
+| **Constant-time** | `timingSafeEqual(a, b)` — every signature/token check goes through this. **Never** `===`. |
+| **Ed25519** | `signEd25519` / `verifyEd25519`, `generateSigningKeyPair`, `parseSecretKey` / `parsePublicKey`. |
+| **HMAC** | `hmacSha256`, `verifyHmacSha256` — for gateway-scheme signatures. |
+| **Hashing / KDF** | `sha256`, `hkdfSha256`. |
+| **Encoding** | `toBytes` / `toHex` / `fromHex` / `toBase64` / `fromBase64` / `toBase64Url` / `fromBase64Url`. |
+
+<Callout title="Why constant time matters">
+A `===` comparison short-circuits on the first differing byte, leaking — through timing — how much of
+a signature an attacker guessed right. `timingSafeEqual` compares every byte regardless. Both Iyzico
+and PayTR's official samples use timing-unsafe comparison; orvacon never copies that.
 </Callout>
+
+## Ed25519, briefly
+
+EdDSA over Curve25519 with SHA-512 (RFC 8032): 32-byte public keys, 64-byte signatures,
+deterministic (no per-signature randomness to leak a key), ≈128-bit security. Fast to verify, small
+to ship in a header — the right default for high-volume webhook signing.
+
+<Cards>
+  <Card title="paykit" href="/docs/paykit" description="Where the two signature worlds live." />
+  <Card title="CLI" href="/docs/cli" description="Generate a signing keypair." />
+</Cards>

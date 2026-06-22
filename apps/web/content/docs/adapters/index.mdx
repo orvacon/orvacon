@@ -1,27 +1,65 @@
 ---
 title: Adapters
-description: Database and framework bridges.
+description: Bring-your-own-database and the framework bridge.
 ---
 
-Adapters bridge orvacon to your infrastructure — bring your own database and framework.
+Adapters bridge orvacon to your infrastructure. There are two kinds — a **database adapter** (where
+orvacon persists payments, events, and the ledger) and a **framework adapter** (the HTTP glue).
 
-## Database
+## Database — bring your own
 
-- **`@orvacon/adapter-supabase`** — generates a Postgres schema with **default-deny** row-level
-  security out of the box.
-- **`@orvacon/adapter-drizzle`** — a Drizzle ORM database adapter.
+orvacon imposes no database. You pass a `DatabaseAdapter`; the core does every read and write through
+it, inside the transactions it asks for, so a state transition and its ledger row commit together —
+there is never a half-applied state.
 
-Any Postgres works underneath — Supabase, Neon, RDS, or your own.
+### Supabase / Postgres
 
-## Framework
+`@orvacon/adapter-supabase` connects directly to Postgres (transactions, advisory locks) and pairs
+with a generated schema carrying **default-deny row-level security**.
 
-- **`@orvacon/adapter-nextjs`** — App Router route handlers and webhook verification:
+```ts title="lib/orva.ts"
+import { supabaseAdapter } from "@orvacon/adapter-supabase";
+
+const database = supabaseAdapter({ connectionString: process.env.DATABASE_URL! });
+```
+
+Generate the schema + RLS migration with the [CLI](/docs/cli):
+
+```bash
+npx orvacon generate --write   # → supabase/migrations/<timestamp>_orvacon.sql
+```
+
+The RLS keys off each payment's `userId` (e.g. a Supabase `auth.uid()`). A guest payment has no
+owner and is visible only to the server (the service role / direct connection) — `auth.uid() = null`
+never matches a row, a deliberate posture. Any Postgres works underneath: Supabase, Neon, RDS, or
+your own; a Drizzle ORM adapter is on the roadmap.
+
+## Framework — Next.js
+
+`@orvacon/adapter-nextjs` turns orvacon into App Router route handlers — the gateway-callback route,
+with signed-webhook delivery drained through `after()`.
 
 ```ts title="app/api/orva/callback/[connector]/route.ts"
+import { toNextJsHandler } from "@orvacon/adapter-nextjs";
+import { orva } from "@/lib/orva";
+
 export const { POST } = toNextJsHandler(orva, {
   returnUrl: { success: "/checkout/done", failure: "/checkout/failed" },
 });
 ```
 
-The finalize and state writes settle **before** the browser is redirected, so the user sees the
+The finalize and state writes settle **before** the browser is redirected, so the user lands on the
 real outcome; the signed outbound webhook is drained in the background.
+
+<Callout title="Make the callback route public">
+The gateway redirects the browser to this route with no session — exclude `/api/orva/callback` from
+your middleware, or an auth check silently strands payments.
+</Callout>
+
+The core itself is framework-agnostic — it speaks Web-standard `Request`/`Response` via
+`toWebHandler`, so other framework adapters are a thin wrapper; v1 ships the Next.js one.
+
+<Cards>
+  <Card title="CLI" href="/docs/cli" description="Generate the schema + RLS." />
+  <Card title="Get started" href="/docs/get-started" description="Wire it all together." />
+</Cards>
