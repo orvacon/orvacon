@@ -177,7 +177,15 @@ export type Card = {
 
 /** A gateway-issued token standing in for a card (PCI-friendly flow). */
 export type CardToken = {
+  /** The token the gateway issued for the card. */
   token: string;
+  /**
+   * A vault "user" reference some gateways scope the token to (Iyzico's
+   * `cardUserKey`). Minted alongside the token by {@link OrvaconConnector.storeCard};
+   * pass it back unchanged to charge the token. Gateways that do not use one
+   * leave it undefined.
+   */
+  userKey?: string;
 };
 
 /**
@@ -312,6 +320,51 @@ export type ReconcileOutcome =
   | { ok: true; resolved: false }
   | { ok: false; error: ConnectorError };
 
+/**
+ * A vaulted card: the gateway {@link CardToken} plus enough non-sensitive detail
+ * to display it ("Visa •••• 4242"). orvacon persists none of this — it is
+ * returned for the application to store against its own customer, then passed
+ * back as a `token` {@link PaymentSource} to charge the card later.
+ */
+export type StoredCard = {
+  token: CardToken;
+  /** Last four digits of the card number, for display. */
+  last4?: string;
+  /** Card brand/scheme, e.g. `"Visa"`, `"Mastercard"`. */
+  brand?: string;
+};
+
+/**
+ * Input to {@link OrvaconConnector.storeCard}. The {@link Card} is toxic: it
+ * reaches the connector, is exchanged for a token, and is gone — never persisted.
+ */
+export type StoreCardInput = {
+  card: Card;
+  /**
+   * Add this card to an existing vault user, so one customer's cards share a
+   * {@link CardToken.userKey}; omit to start a new one. Pass the `userKey` from
+   * an earlier {@link StoreCardResult}.
+   */
+  userKey?: string;
+  /** A human label for the stored card, where the gateway records one. */
+  alias?: string;
+  /** The cardholder. A connector may require a subset (Iyzico needs an email). */
+  buyer?: Buyer;
+};
+
+/** Outcome of {@link OrvaconConnector.storeCard}. */
+export type StoreCardResult =
+  | { ok: true; card: StoredCard; raw: unknown }
+  | { ok: false; error: ConnectorError };
+
+/** Input to {@link OrvaconConnector.deleteCard}: the token to forget. */
+export type DeleteCardInput = {
+  token: CardToken;
+};
+
+/** Outcome of {@link OrvaconConnector.deleteCard}. */
+export type DeleteCardResult = { ok: true } | { ok: false; error: ConnectorError };
+
 /** A raw inbound webhook, before verification and normalization. */
 export type RawWebhook = {
   headers: Record<string, string>;
@@ -376,6 +429,20 @@ export interface OrvaconConnector {
    * `reconcile` on it (a connector without this method cannot be reconciled).
    */
   retrievePayment?(ctx: ConnectorContext, input: RetrievePaymentInput): Promise<ReconcileOutcome>;
+
+  /**
+   * Optionally vault a card with the gateway, returning a {@link CardToken} that
+   * can be charged later via a `token` {@link PaymentSource}. Present only on
+   * connectors whose gateway offers card storage — its presence *is* the
+   * capability, so the core gates `storeCard` on it. orvacon persists nothing;
+   * the token is returned for the application to store.
+   */
+  storeCard?(ctx: ConnectorContext, input: StoreCardInput): Promise<StoreCardResult>;
+  /**
+   * Optionally delete a vaulted card at the gateway. Paired with {@link storeCard}
+   * and gated the same way (its presence is the capability).
+   */
+  deleteCard?(ctx: ConnectorContext, input: DeleteCardInput): Promise<DeleteCardResult>;
 
   /** Optional check for gateway-side setup the connector cannot perform itself. */
   verifySetup?(ctx: ConnectorContext): Promise<SetupResult>;

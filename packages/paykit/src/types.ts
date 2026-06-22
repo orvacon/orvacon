@@ -2,11 +2,15 @@ import type {
   AuthorizeInput,
   ConnectorError,
   ConnectorResult,
+  DeleteCardInput,
+  DeleteCardResult,
   Logger,
   NormalizedEvent,
   NormalizedEventType,
   OrvaconConnector,
   RawWebhook,
+  StoreCardInput,
+  StoreCardResult,
 } from "./connector";
 import type { DatabaseAdapter } from "./database";
 import type { RetryConfig } from "./delivery";
@@ -116,6 +120,17 @@ export type CaptureRequest = Idempotent<{ paymentId: PaymentId; amount?: Money }
 export type RefundRequest = Idempotent<{ paymentId: PaymentId; amount?: Money }>;
 
 /**
+ * Application-facing store-card request. Vaults a card with the gateway and
+ * returns a {@link CardToken} to charge later. `connectorId` selects the gateway
+ * (omit when exactly one is registered). Not idempotent and not persisted —
+ * orvacon returns the token for the application to store against its own customer.
+ */
+export type StoreCardRequest = StoreCardInput & { connectorId?: string };
+
+/** Application-facing delete-card request. `connectorId` selects the gateway. */
+export type DeleteCardRequest = DeleteCardInput & { connectorId?: string };
+
+/**
  * Outcome of a mutating operation. `paymentId` is present whenever a payment
  * row exists — it is absent only when validation rejected the request before a
  * payment was created.
@@ -177,6 +192,15 @@ export interface Orvacon {
    * never-finalized 3DS payment moved no money: leaving it untouched is correct.)
    */
   reconcile(paymentId: PaymentId): Promise<ReconcileResult>;
+  /**
+   * Vault a card with the gateway and return a {@link CardToken} to charge it
+   * later (via a `token` payment source). orvacon stores nothing — persist the
+   * returned token against your own customer. A connector whose gateway has no
+   * card storage rejects this as `invalid_request`.
+   */
+  storeCard(request: StoreCardRequest): Promise<StoreCardResult>;
+  /** Delete a vaulted card at the gateway. Paired with {@link storeCard}. */
+  deleteCard(request: DeleteCardRequest): Promise<DeleteCardResult>;
   /**
    * Await every in-flight outbound webhook delivery, including pending retries.
    * Outgoing delivery is fire-and-forget — the mutating methods return without

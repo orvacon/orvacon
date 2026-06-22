@@ -1,14 +1,17 @@
 import { parseSecretKey } from "@orvacon/cryptokit";
 import type {
   ConnectorContext,
+  ConnectorError,
   ConnectorErrorCode,
   ConnectorResult,
+  DeleteCardResult,
   Logger,
   NormalizedEvent,
   NormalizedEventType,
   OrvaconConnector,
   RawError,
   RawWebhook,
+  StoreCardResult,
 } from "./connector";
 import type { TransactionScope } from "./database";
 import { createWebhookDeliverer } from "./delivery";
@@ -21,17 +24,20 @@ import { assertTransition, canTransition, type Payment, type PaymentStatus } fro
 import type {
   AuthorizeRequest,
   CaptureRequest,
+  DeleteCardRequest,
   OperationOutcome,
   Orvacon,
   OrvaconConfig,
   ReconcileResult,
   RefundRequest,
+  StoreCardRequest,
   WebhookOutcome,
 } from "./types";
 
 export type {
   AuthorizeRequest,
   CaptureRequest,
+  DeleteCardRequest,
   HookHandler,
   Hooks,
   OperationOutcome,
@@ -40,6 +46,7 @@ export type {
   OrvaconPlugin,
   ReconcileResult,
   RefundRequest,
+  StoreCardRequest,
   WebhookOutcome,
 } from "./types";
 
@@ -53,7 +60,7 @@ const noopLogger = {
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 
-function fail(code: ConnectorErrorCode, message: string): ConnectorResult {
+function fail(code: ConnectorErrorCode, message: string): { ok: false; error: ConnectorError } {
   return { ok: false, error: { code, message } };
 }
 
@@ -240,9 +247,9 @@ export function orvacon(config: OrvaconConfig): Orvacon {
     });
   }
 
-  function resolveAuthorizeConnector(
+  function resolveConnector(
     requested: string | undefined,
-  ): OrvaconConnector | ConnectorResult {
+  ): OrvaconConnector | { ok: false; error: ConnectorError } {
     if (requested !== undefined) {
       const connector = registry.get(requested);
       return connector ?? fail("invalid_request", `unknown connector "${requested}"`);
@@ -258,7 +265,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
   }
 
   async function authorize(request: AuthorizeRequest): Promise<OperationOutcome> {
-    const resolved = resolveAuthorizeConnector(request.connectorId);
+    const resolved = resolveConnector(request.connectorId);
     if ("ok" in resolved) {
       return { result: resolved };
     }
@@ -629,12 +636,36 @@ export function orvacon(config: OrvaconConfig): Orvacon {
     return { ok: true, resolved: true, payment: settled.payment, event: settled.event };
   }
 
+  async function storeCard(request: StoreCardRequest): Promise<StoreCardResult> {
+    const resolved = resolveConnector(request.connectorId);
+    if ("ok" in resolved) {
+      return resolved;
+    }
+    if (!resolved.storeCard) {
+      return fail("invalid_request", `connector "${resolved.id}" does not support card storage`);
+    }
+    return resolved.storeCard(makeContext(), request);
+  }
+
+  async function deleteCard(request: DeleteCardRequest): Promise<DeleteCardResult> {
+    const resolved = resolveConnector(request.connectorId);
+    if ("ok" in resolved) {
+      return resolved;
+    }
+    if (!resolved.deleteCard) {
+      return fail("invalid_request", `connector "${resolved.id}" does not support card storage`);
+    }
+    return resolved.deleteCard(makeContext(), request);
+  }
+
   return {
     authorize,
     capture,
     refund,
     handleWebhook,
     reconcile,
+    storeCard,
+    deleteCard,
     drainWebhooks: deliverer ? () => deliverer.idle() : () => Promise.resolve(),
   };
 }
