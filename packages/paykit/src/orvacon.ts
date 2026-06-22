@@ -43,7 +43,6 @@ export type {
   OperationOutcome,
   Orvacon,
   OrvaconConfig,
-  OrvaconPlugin,
   ReconcileResult,
   RefundRequest,
   StoreCardRequest,
@@ -62,6 +61,16 @@ const DEFAULT_IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 
 function fail(code: ConnectorErrorCode, message: string): { ok: false; error: ConnectorError } {
   return { ok: false, error: { code, message } };
+}
+
+/** Attach the orvacon paymentId to a connector result, forming an {@link OperationOutcome}. */
+function withPaymentId(result: ConnectorResult, paymentId: PaymentId): OperationOutcome {
+  return { ...result, paymentId };
+}
+
+/** A rejected operation on a known payment — the {@link OperationOutcome} failure shape. */
+function bad(paymentId: PaymentId, code: ConnectorErrorCode, message: string): OperationOutcome {
+  return { ok: false, paymentId, error: { code, message } };
 }
 
 function classifyError(rawCode: string, errorCodes?: Record<string, RawError>): ConnectorErrorCode {
@@ -191,15 +200,20 @@ export function orvacon(config: OrvaconConfig): Orvacon {
     if (!claim.inserted) {
       const existing = claim.existing;
       if (existing.status === "completed") {
-        return { paymentId: existing.paymentId, result: existing.result as ConnectorResult };
+        return {
+          ...(existing.result as ConnectorResult),
+          paymentId: existing.paymentId,
+        } as OperationOutcome;
       }
       if (Date.parse(existing.expiresAt) > now) {
         return {
+          ok: false,
           paymentId: existing.paymentId,
-          result: fail(
-            "conflict",
-            "another request with this idempotency key is in progress; retry after it settles",
-          ),
+          error: {
+            code: "conflict",
+            message:
+              "another request with this idempotency key is in progress; retry after it settles",
+          },
         };
       }
       const reclaimed = await db.reclaimIdempotencyKey(
@@ -208,17 +222,20 @@ export function orvacon(config: OrvaconConfig): Orvacon {
       );
       if (!reclaimed) {
         return {
+          ok: false,
           paymentId: existing.paymentId,
-          result: fail(
-            "conflict",
-            "another request just took over this stale idempotency key; retry after it settles",
-          ),
+          error: {
+            code: "conflict",
+            message:
+              "another request just took over this stale idempotency key; retry after it settles",
+          },
         };
       }
     }
     const outcome = await run();
-    if (outcome.paymentId) {
-      await db.completeIdempotencyKey(key, outcome.paymentId, outcome.result);
+    const { paymentId, ...result } = outcome;
+    if (paymentId) {
+      await db.completeIdempotencyKey(key, paymentId, result);
     }
     return outcome;
   }
@@ -267,13 +284,11 @@ export function orvacon(config: OrvaconConfig): Orvacon {
   async function authorize(request: AuthorizeRequest): Promise<OperationOutcome> {
     const resolved = resolveConnector(request.connectorId);
     if ("ok" in resolved) {
-      return { result: resolved };
+      return resolved;
     }
     const connector = resolved;
     if (request.threeDSecure && connector.capabilities.threeDSecure === "none") {
-      return {
-        result: fail("invalid_request", `connector "${connector.id}" does not support 3-D Secure`),
-      };
+      return fail("invalid_request", `connector "${connector.id}" does not support 3-D Secure`);
     }
     return withIdempotency(request.idempotencyKey, async () => {
       const id = generatePaymentId();
@@ -306,17 +321,17 @@ export function orvacon(config: OrvaconConfig): Orvacon {
             syntheticEvent("payment.failed", failed, request.amount, result.error.raw),
           );
         }
-        return { paymentId: id, result };
+        return withPaymentId(result, id);
       }
       if (result.status === "requires_action") {
         await db.updatePaymentStatus(id, "created", "requires_action", {
           gatewayReference: result.gatewayReference,
         });
-        return { paymentId: id, result };
+        return withPaymentId(result, id);
       }
       if (result.status !== "authorized" && result.status !== "captured") {
         report(new Error(`connector "${connector.id}" returned "${result.status}" from authorize`));
-        return { paymentId: id, result };
+        return withPaymentId(result, id);
       }
       const updated = await persistWithLedger(
         id,
@@ -329,7 +344,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
         const type = result.status === "captured" ? "payment.captured" : "payment.authorized";
         await emit(updated, syntheticEvent(type, updated, request.amount, result.raw));
       }
-      return { paymentId: id, result };
+      return withPaymentId(result, id);
     });
   }
 
@@ -356,43 +371,37 @@ export function orvacon(config: OrvaconConfig): Orvacon {
   async function capture(request: CaptureRequest): Promise<OperationOutcome> {
     const loaded = await loadForOperation(request.paymentId);
     if ("ok" in loaded) {
-      return { paymentId: request.paymentId, result: loaded };
+      return withPaymentId(loaded, request.paymentId);
     }
     const { payment, connector, gatewayReference } = loaded;
     if (connector.capabilities.autoCapture) {
-      return {
-        paymentId: payment.id,
-        result: fail(
-          "invalid_request",
-          `connector "${connector.id}" auto-captures at authorize and has no separate capture step`,
-        ),
-      };
+      return bad(
+        payment.id,
+        "invalid_request",
+        `connector "${connector.id}" auto-captures at authorize and has no separate capture step`,
+      );
     }
     if (!canTransition(payment.status, "captured")) {
-      return {
-        paymentId: payment.id,
-        result: fail("invalid_request", `cannot capture a payment in status "${payment.status}"`),
-      };
+      return bad(
+        payment.id,
+        "invalid_request",
+        `cannot capture a payment in status "${payment.status}"`,
+      );
     }
     if (request.amount) {
       if (!sameCurrency(request.amount, payment.amount)) {
-        return { paymentId: payment.id, result: fail("invalid_request", "currency mismatch") };
+        return bad(payment.id, "invalid_request", "currency mismatch");
       }
       const isPartial = compareMoney(request.amount, payment.amount) === -1;
       if (compareMoney(request.amount, payment.amount) === 1) {
-        return {
-          paymentId: payment.id,
-          result: fail("invalid_request", "capture amount exceeds the authorized amount"),
-        };
+        return bad(payment.id, "invalid_request", "capture amount exceeds the authorized amount");
       }
       if (isPartial && !connector.capabilities.partialCapture) {
-        return {
-          paymentId: payment.id,
-          result: fail(
-            "invalid_request",
-            `connector "${connector.id}" does not support partial capture`,
-          ),
-        };
+        return bad(
+          payment.id,
+          "invalid_request",
+          `connector "${connector.id}" does not support partial capture`,
+        );
       }
     }
     const captureAmount = request.amount ?? payment.amount;
@@ -403,7 +412,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
         amount: request.amount,
       });
       if (!result.ok) {
-        return { paymentId: payment.id, result };
+        return withPaymentId(result, payment.id);
       }
       const updated = await persistWithLedger(payment.id, payment.status, "captured", undefined, {
         amount: captureAmount,
@@ -414,48 +423,41 @@ export function orvacon(config: OrvaconConfig): Orvacon {
       } else {
         logger.warn(`capture race on payment "${payment.id}": state moved concurrently`);
       }
-      return { paymentId: payment.id, result };
+      return withPaymentId(result, payment.id);
     });
   }
 
   async function refund(request: RefundRequest): Promise<OperationOutcome> {
     const loaded = await loadForOperation(request.paymentId);
     if ("ok" in loaded) {
-      return { paymentId: request.paymentId, result: loaded };
+      return withPaymentId(loaded, request.paymentId);
     }
     const { payment, connector, gatewayReference } = loaded;
     if (!canTransition(payment.status, "refunded")) {
-      return {
-        paymentId: payment.id,
-        result: fail("invalid_request", `cannot refund a payment in status "${payment.status}"`),
-      };
+      return bad(
+        payment.id,
+        "invalid_request",
+        `cannot refund a payment in status "${payment.status}"`,
+      );
     }
     const refundedTotal = payment.refundedTotal ?? money(0, payment.amount.currency);
     const remaining = subtractMoney(payment.amount, refundedTotal);
     if (isZeroMoney(remaining)) {
-      return {
-        paymentId: payment.id,
-        result: fail("invalid_request", "payment is already fully refunded"),
-      };
+      return bad(payment.id, "invalid_request", "payment is already fully refunded");
     }
     const delta = request.amount ?? remaining;
     if (!sameCurrency(delta, payment.amount)) {
-      return { paymentId: payment.id, result: fail("invalid_request", "currency mismatch") };
+      return bad(payment.id, "invalid_request", "currency mismatch");
     }
     if (compareMoney(delta, remaining) === 1) {
-      return {
-        paymentId: payment.id,
-        result: fail("invalid_request", "refund amount exceeds the refundable remainder"),
-      };
+      return bad(payment.id, "invalid_request", "refund amount exceeds the refundable remainder");
     }
     if (compareMoney(delta, remaining) === -1 && !connector.capabilities.partialRefund) {
-      return {
-        paymentId: payment.id,
-        result: fail(
-          "invalid_request",
-          `connector "${connector.id}" does not support partial refund`,
-        ),
-      };
+      return bad(
+        payment.id,
+        "invalid_request",
+        `connector "${connector.id}" does not support partial refund`,
+      );
     }
     return withIdempotency(request.idempotencyKey, async () => {
       const result = await connector.refund(makeContext(), {
@@ -464,7 +466,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
         amount: delta,
       });
       if (!result.ok) {
-        return { paymentId: payment.id, result };
+        return withPaymentId(result, payment.id);
       }
       const newTotal = addMoney(refundedTotal, delta);
       const to: PaymentStatus =
@@ -481,7 +483,7 @@ export function orvacon(config: OrvaconConfig): Orvacon {
       } else {
         logger.warn(`refund race on payment "${payment.id}": state moved concurrently`);
       }
-      return { paymentId: payment.id, result };
+      return withPaymentId(result, payment.id);
     });
   }
 

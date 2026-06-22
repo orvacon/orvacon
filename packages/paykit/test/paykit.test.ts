@@ -178,7 +178,7 @@ describe("authorize", () => {
       amount: money(10_000, "TRY"),
       source: { type: "token", token: { token: "tok_1" } },
     });
-    expect(outcome.result.ok).toBe(true);
+    expect(outcome.ok).toBe(true);
     const stored = db.payments.get(requirePaymentId(outcome));
     expect(stored?.status).toBe("captured");
     expect(db.ledger).toHaveLength(2);
@@ -248,7 +248,7 @@ describe("authorize", () => {
     const second = await pay.authorize(request);
     expect(connector.calls.authorize).toBe(1);
     expect(second.paymentId).toBe(first.paymentId);
-    expect(second.result).toEqual(first.result);
+    expect(second).toEqual(first);
     expect(db.ledger).toHaveLength(2);
   });
 
@@ -267,9 +267,9 @@ describe("authorize", () => {
       amount: money(1_000, "TRY"),
       source: { type: "token", token: { token: "tok" } },
     });
-    expect(outcome.result.ok).toBe(false);
-    if (!outcome.result.ok) {
-      expect(outcome.result.error.code).toBe("conflict");
+    expect(outcome.ok).toBe(false);
+    if (!outcome.ok) {
+      expect(outcome.error.code).toBe("conflict");
     }
     expect(connector.calls.authorize).toBe(0);
   });
@@ -289,7 +289,7 @@ describe("authorize", () => {
       amount: money(1_000, "TRY"),
       source: { type: "token", token: { token: "tok" } },
     });
-    expect(outcome.result.ok).toBe(true);
+    expect(outcome.ok).toBe(true);
     expect(connector.calls.authorize).toBe(1);
   });
 
@@ -309,7 +309,7 @@ describe("authorize", () => {
       amount: money(1_000, "TRY"),
       source: { type: "token", token: { token: "tok" } },
     });
-    expect(outcome.result.ok).toBe(false);
+    expect(outcome.ok).toBe(false);
     expect(db.payments.get(requirePaymentId(outcome))?.status).toBe("failed");
     expect(db.ledger).toHaveLength(0);
   });
@@ -332,9 +332,9 @@ describe("capture", () => {
       paymentId: requirePaymentId(authorized),
       amount: money(4_000, "TRY"),
     });
-    expect(outcome.result.ok).toBe(false);
-    if (!outcome.result.ok) {
-      expect(outcome.result.error.code).toBe("invalid_request");
+    expect(outcome.ok).toBe(false);
+    if (!outcome.ok) {
+      expect(outcome.error.code).toBe("invalid_request");
     }
     expect(connector.calls.capture).toBe(0);
   });
@@ -354,10 +354,10 @@ describe("capture", () => {
       idempotencyKey: idempotencyKey("k-autocap-cap"),
       paymentId: requirePaymentId(authorized),
     });
-    expect(outcome.result.ok).toBe(false);
-    if (!outcome.result.ok) {
-      expect(outcome.result.error.code).toBe("invalid_request");
-      expect(outcome.result.error.message).toContain("auto-captures");
+    expect(outcome.ok).toBe(false);
+    if (!outcome.ok) {
+      expect(outcome.error.code).toBe("invalid_request");
+      expect(outcome.error.message).toContain("auto-captures");
     }
     expect(connector.calls.capture).toBe(0);
   });
@@ -378,14 +378,14 @@ describe("refund", () => {
       paymentId: id,
       amount: money(3_000, "TRY"),
     });
-    expect(partial.result.ok).toBe(true);
+    expect(partial.ok).toBe(true);
     expect(db.payments.get(id)?.status).toBe("partially_refunded");
     expect(db.payments.get(id)?.refundedTotal).toEqual(money(3_000, "TRY"));
     const rest = await pay.refund({
       idempotencyKey: idempotencyKey("k-r2"),
       paymentId: id,
     });
-    expect(rest.result.ok).toBe(true);
+    expect(rest.ok).toBe(true);
     expect(db.payments.get(id)?.status).toBe("refunded");
     expect(db.payments.get(id)?.refundedTotal).toEqual(money(10_000, "TRY"));
     expect(db.ledger).toHaveLength(6);
@@ -407,7 +407,7 @@ describe("refund", () => {
       paymentId: requirePaymentId(authorized),
       amount: money(2_000, "TRY"),
     });
-    expect(outcome.result.ok).toBe(false);
+    expect(outcome.ok).toBe(false);
     expect(connector.calls.refund).toBe(0);
   });
 });
