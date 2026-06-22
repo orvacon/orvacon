@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { CopyButton } from "@/components/copy-button";
 import { ArrowRight } from "@/components/icons";
@@ -53,12 +54,13 @@ export function GetStarted() {
               Read the README
               <ArrowRight className="h-4 w-4" />
             </a>
-            <span className="inline-flex items-center gap-2 rounded-[9px] border border-line px-4 py-[11px] text-[14.5px] text-fg-dim">
-              Docs
-              <span className="rounded border border-line px-1.5 py-px font-mono text-[10px] text-fg-faint">
-                soon
-              </span>
-            </span>
+            <Link
+              href="/docs/get-started"
+              className="inline-flex items-center gap-2 rounded-[9px] border border-line px-[18px] py-[11px] text-[14.5px] text-fg transition-colors hover:border-line-2"
+            >
+              Read the docs
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
 
