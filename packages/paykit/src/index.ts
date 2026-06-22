@@ -13,6 +13,8 @@ export type {
   ConnectorError,
   ConnectorErrorCode,
   ConnectorResult,
+  DeleteCardInput,
+  DeleteCardResult,
   Logger,
   NormalizedEvent,
   NormalizedEventType,
@@ -24,6 +26,9 @@ export type {
   RefundInput,
   RetrievePaymentInput,
   SetupResult,
+  StoreCardInput,
+  StoreCardResult,
+  StoredCard,
 } from "./connector";
 export { isRetryableError } from "./connector";
 export * from "./database";
