@@ -1,23 +1,70 @@
 ---
 title: Connectors
-description: Gateways behind one contract.
+description: Gateways behind one contract — what ships, the interface, capabilities, and Iyzico.
 ---
 
-A connector teaches orvacon how to talk to one payment gateway. Every connector implements the same
-contract — `authorize`, `finalize`, `capture`, `refund`, `reconcile`, `parseWebhook` — so adding or
-switching a provider is a configuration change, never a rewrite.
-
-## Available
-
-- **`@orvacon/connector-iyzico`** — raw-card and 3-D Secure, verified end-to-end against the Iyzico
-  sandbox. Stored-card tokens ship as experimental.
-- **`@orvacon/connector-paytr`** — behind the same contract; on the roadmap.
+A connector teaches orvacon how to talk to one payment gateway. Each implements the same contract,
+so adding or switching a provider is a configuration change — never a rewrite. Your code keeps
+calling `orva.authorize(…)`; the connector translates.
 
 ```ts
 import { iyzico } from "@orvacon/connector-iyzico";
 
-const connector = iyzico({ apiKey, secretKey });
+orvacon({ connectors: [iyzico({ apiKey, secretKey })] });
 ```
 
-Connector **capabilities** (signature encoding, 3-D Secure flow, partial capture support) are
-declared per gateway, so the core adapts without leaking gateway specifics into your code.
+## What ships
+
+| Connector | Status |
+| --- | --- |
+| `@orvacon/connector-iyzico` | Raw-card **and** stored-card 3-D Secure, capture, refund, reconcile, and the card vault — all verified end-to-end against the Iyzico sandbox. |
+| `@orvacon/connector-paytr` | Behind the same contract — on the roadmap. |
+
+## The contract
+
+A connector implements `OrvaconConnector` (from `@orvacon/paykit/connector`). It never throws — every
+operation returns a discriminated `{ ok: true, … } | { ok: false, error }` the core reflects into the
+state machine and ledger.
+
+| Method | |
+| --- | --- |
+| `authorize` | **Required.** Begins the charge; returns `requires_action` with the 3-D Secure challenge. |
+| `capture` / `refund` | **Required.** Settle / reverse. |
+| `parseWebhook` | **Required.** Verifies the gateway's callback with **its own** signature scheme and normalizes it to one event the core understands. |
+| `retrievePayment?` | Optional. Its presence *is* the capability — the core gates `reconcile` on it. |
+| `storeCard?` / `deleteCard?` | Optional. Card vaulting; the core gates `orva.storeCard` / `deleteCard` on them. |
+
+There is no `finalize` method and no connector-level `reconcile`: a 3-D Secure payment completes when
+the signed callback arrives and `parseWebhook` turns it into a `payment.captured` event, and
+`reconcile` is a **core** operation that drives the connector's optional `retrievePayment`.
+
+## Capabilities
+
+A connector declares how its gateway differs, so the core adapts without ever branching on a
+gateway's identity:
+
+| Capability | Iyzico |
+| --- | --- |
+| `signatureEncoding` | `hex` (PayTR uses `base64`) |
+| `threeDSecure` | `html` — the challenge is rendered markup |
+| `autoCapture` | `true` — authorize captures in one step, so a separate `capture()` is rejected |
+| `callbackUrl` | `api` — the callback URL is set on the request (PayTR sets it in the panel) |
+
+<Callout>
+Verify gateway details against the gateway's own docs and sandbox — never write a single signature
+function and assume it fits both Iyzico and PayTR. They differ in real, documented ways.
+</Callout>
+
+## Iyzico specifics
+
+- **Auth:** IYZWSv2 — `HMAC-SHA256(randomKey + uri_path + body)`, hex, base64-wrapped.
+- **3-D Secure:** two steps — initialize returns the challenge HTML; the signed callback is the
+  finalize. orvacon trusts the *finalize* response over TLS, never the raw callback POST.
+- **Capture:** Iyzico captures at authorize (`autoCapture: true`), so there is no separate capture.
+- **Card vault:** `storeCard` returns a `cardToken` + `cardUserKey`; charge it later with a `token`
+  payment source. orvacon stores neither — you persist the token against your own customer.
+
+<Cards>
+  <Card title="paykit" href="/docs/paykit" description="The core the connector plugs into." />
+  <Card title="cryptokit" href="/docs/cryptokit" description="The signature primitives connectors use." />
+</Cards>

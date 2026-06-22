@@ -1,18 +1,65 @@
 ---
 title: CLI
-description: Keys and schema from the terminal.
+description: Generate webhook keys and a default-deny database schema from the terminal.
 ---
 
-The CLI publishes as the unscoped `orvacon` package, so it runs without installing — shadcn-style.
+The CLI publishes as the unscoped **`orvacon`** package, so it runs without installing —
+shadcn-style. Two commands cover the setup orvacon can't do for you: minting a signing keypair and
+emitting the database schema.
 
 ```bash
-npx orvacon keys      # generate an Ed25519 webhook signing keypair
-npx orvacon generate  # generate the database schema with default-deny RLS
+npx orvacon --help
 ```
 
-The signing key prints as `ORVACON_WEBHOOK_SIGNING_KEY=…`; set it in your environment and never
-commit it. The public verification key can be distributed freely.
+## `orvacon keys`
 
-<Callout type="info">
-The CLI is an early release — commands are still landing.
+Generates an Ed25519 webhook signing keypair and prints both keys to stdout as env lines:
+
+```bash
+npx orvacon keys >> .env.local
+```
+
+```bash
+ORVACON_WEBHOOK_SIGNING_KEY=orvsk_…   # secret — pass to orvacon({ webhookSigningKey }); never commit
+ORVACON_WEBHOOK_PUBLIC_KEY=orvpk_…    # public — give to whoever verifies your webhooks; safe to share
+```
+
+The secret signs outbound webhooks; the public key is what your verifying endpoint (or a third party)
+checks against. Redirect stdout to capture them — the guidance prints to stderr, so it won't end up
+in your `.env`.
+
+## `orvacon generate`
+
+Emits the core Postgres schema with **default-deny row-level security**. By default it *prints* the
+SQL rather than writing it — deliberately, so you read the security boundary before applying it:
+
+```bash
+npx orvacon generate                 # print schema + RLS to stdout (review it)
+npx orvacon generate --write         # save → supabase/migrations/<timestamp>_orvacon.sql
+npx orvacon generate --write --force # overwrite an existing orvacon migration
+```
+
+Then apply it with your migration tool:
+
+```bash
+supabase db push
+```
+
+| Flag | |
+| --- | --- |
+| `--write`, `-w` | Save the migration instead of printing it. Refuses to clobber an existing `*_orvacon.sql` (your customized RLS) unless forced. |
+| `--force`, `-f` | Write a fresh timestamped migration even when one already exists. |
+| `--adapter <name>` | Target adapter. Defaults to `supabase` — the only one in v1. |
+
+<Callout title="service_role bypasses RLS by design">
+The generated policies are your payment data's security boundary. Keep your Supabase `service_role`
+key server-only and never commit it — it sits outside the RLS by design, the one key that does.
 </Callout>
+
+The `see → write → apply` order is intentional: you read the policies, save them into your own
+migration history, and apply them yourself. orvacon never silently mutates your database.
+
+<Cards>
+  <Card title="Adapters" href="/docs/adapters" description="Where the schema and RLS live." />
+  <Card title="cryptokit" href="/docs/cryptokit" description="The keys behind orvacon keys." />
+</Cards>
