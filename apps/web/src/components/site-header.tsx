@@ -7,6 +7,7 @@ const navLinks = [
   { label: "Connectors", href: "/connectors" },
   { label: "Security", href: "/security" },
   { label: "Pricing", href: "/pricing" },
+  { label: "Docs", href: "/docs" },
 ];
 
 function GitHubMark() {

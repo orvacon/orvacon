@@ -95,12 +95,9 @@ export function SiteFooter() {
               Resources
             </div>
             <div className="flex flex-col gap-2.5 text-[13.5px]">
-              <span className="inline-flex items-center gap-1.5 text-fg-dim">
+              <Link href="/docs" className="text-fg-dim transition-colors hover:text-fg">
                 Docs
-                <span className="rounded border border-line px-1.5 py-px font-mono text-[9.5px] text-fg-faint">
-                  soon
-                </span>
-              </span>
+              </Link>
               <a
                 href="https://github.com/orvacon/orvacon#readme"
                 target="_blank"
