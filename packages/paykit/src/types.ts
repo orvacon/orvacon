@@ -18,11 +18,6 @@ import type { Idempotent, PaymentId } from "./ids";
 import type { Money } from "./money";
 import type { Payment } from "./state";
 
-/** A behavior plugin, bound via `plugins: []`. Contract firmed up later. */
-export interface OrvaconPlugin {
-  readonly id: string;
-}
-
 /**
  * Handler invoked after the corresponding event's state change is persisted.
  * Receives the persisted {@link Payment} (final status — e.g. distinguishing
@@ -47,8 +42,6 @@ export type OrvaconConfig = {
   database: DatabaseAdapter;
   /** Registered gateway connectors, e.g. `[iyzico({ ... })]`. */
   connectors: OrvaconConnector[];
-  /** Behavior plugins. */
-  plugins?: OrvaconPlugin[];
   /** Event-keyed lifecycle hooks. */
   hooks?: Hooks;
   /** Logger. Defaults to a no-op. */
@@ -131,14 +124,16 @@ export type StoreCardRequest = StoreCardInput & { connectorId?: string };
 export type DeleteCardRequest = DeleteCardInput & { connectorId?: string };
 
 /**
- * Outcome of a mutating operation. `paymentId` is present whenever a payment
- * row exists — it is absent only when validation rejected the request before a
- * payment was created.
+ * Outcome of a mutating operation (`authorize` / `capture` / `refund`): the
+ * connector's discriminated result with the orvacon `paymentId` attached, so it
+ * is discriminated on `ok` like every other operation. `paymentId` is always
+ * present on success (the payment row exists) and on a post-creation failure;
+ * it is absent only when validation rejected the request before any payment was
+ * created.
  */
-export type OperationOutcome = {
-  paymentId?: PaymentId;
-  result: ConnectorResult;
-};
+export type OperationOutcome =
+  | ({ paymentId: PaymentId } & Extract<ConnectorResult, { ok: true }>)
+  | ({ paymentId?: PaymentId } & Extract<ConnectorResult, { ok: false }>);
 
 /** Outcome of an inbound webhook: the normalized event, the payment after processing, and whether this delivery was a duplicate (already-applied transitions are skipped, not re-applied). */
 export type WebhookOutcome = {
