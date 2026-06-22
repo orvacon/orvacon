@@ -6,6 +6,7 @@ import { IYZICO_ERROR_CODES } from "./error-codes";
 import { parseWebhook } from "./parse-webhook";
 import { refund } from "./refund";
 import { retrievePayment } from "./retrieve";
+import { deleteCard, storeCard } from "./store-card";
 import { createTransport } from "./transport";
 
 /**
@@ -17,9 +18,9 @@ import { createTransport } from "./transport";
  * authorize, so the core gates a separate capture via `autoCapture: true` and
  * this fallback is reached only if that gate is bypassed.
  *
- * @remarks The raw-card 3DS lifecycle (authorize → finalize → capture), refund,
- * and reconcile are sandbox-verified. Still experimental or deferred: the token
- * (stored-card) flow, multi-item partial refund, and the async
+ * @remarks The raw-card and stored-card (token) 3DS lifecycles (authorize →
+ * finalize → capture), refund, reconcile, and card storage (store/delete) are
+ * sandbox-verified. Still deferred: multi-item partial refund and the async
  * X-IYZ-SIGNATURE-V3 notification (post-v1).
  */
 export function iyzico(config: IyzicoConfig): OrvaconConnector {
@@ -41,6 +42,8 @@ export function iyzico(config: IyzicoConfig): OrvaconConnector {
     refund: (ctx, input) => refund(transport, ctx, input),
     parseWebhook: (ctx, raw) => parseWebhook(transport, ctx, raw),
     retrievePayment: (ctx, input) => retrievePayment(transport, ctx, input),
+    storeCard: (ctx, input) => storeCard(transport, ctx, input),
+    deleteCard: (ctx, input) => deleteCard(transport, ctx, input),
     $ERROR_CODES: IYZICO_ERROR_CODES,
   };
 }

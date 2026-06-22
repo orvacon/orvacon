@@ -101,13 +101,10 @@ function buildRequestBody(input: AuthorizeInput): Record<string, unknown> {
 }
 
 /**
- * Map the payment source to Iyzico's `paymentCard`. The raw-card flow is
- * first-class.
- *
- * @remarks **Unverified** — the token (stored-card) flow is mapped but only the
- * raw-card 3DS path is sandbox-verified in v1. Iyzico's stored-card flow may also
- * require `cardUserKey` and may change the 3DS requirement; confirm against the
- * sandbox before relying on it.
+ * Map the payment source to Iyzico's `paymentCard`. A raw-card flow sends the
+ * PAN; a token flow sends the stored `cardToken` plus its `cardUserKey` — Iyzico
+ * scopes a stored card to a vault user, so {@link storeCard} mints both and a
+ * token authorize passes both back.
  */
 function buildPaymentCard(source: AuthorizeInput["source"]): Record<string, unknown> {
   if (source.type === "card") {
@@ -119,7 +116,10 @@ function buildPaymentCard(source: AuthorizeInput["source"]): Record<string, unkn
       cvc: source.card.cvc,
     };
   }
-  return { cardToken: source.token.token };
+  return {
+    cardToken: source.token.token,
+    ...(source.token.userKey ? { cardUserKey: source.token.userKey } : {}),
+  };
 }
 
 function buildBuyer(input: AuthorizeInput): Record<string, unknown> {
