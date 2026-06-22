@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "index",
+    "get-started",
+    "---Reference---",
+    "paykit",
+    "connectors",
+    "adapters",
+    "cryptokit",
+    "cli"
+  ]
+}

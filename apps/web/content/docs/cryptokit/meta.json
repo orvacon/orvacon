@@ -1,6 +1,0 @@
-{
-  "root": true,
-  "title": "cryptokit",
-  "description": "Ed25519 signing primitives.",
-  "icon": "KeyRound"
-}
