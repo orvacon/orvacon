@@ -22,7 +22,7 @@ export type IyzicoSuccess = IyzicoEnvelope & { status: "success" } & Record<stri
 
 /** A single Iyzico API call. `body` is serialized once; the exact string is both signed and sent. */
 export type IyzicoRequest = {
-  method: "POST";
+  method: "POST" | "DELETE";
   /** Path beginning with `/`, e.g. `/payment/3dsecure/initialize`. */
   path: string;
   body?: Record<string, unknown>;
