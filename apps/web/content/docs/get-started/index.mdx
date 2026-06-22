@@ -44,17 +44,24 @@ payment.
 ## Take a payment
 
 ```ts
+import { money } from "@orvacon/paykit";
+
 const outcome = await orva.authorize({
-  amount: money(1499, "TRY"),
-  source: card,
+  amount: money(1499, "TRY"), // 14.99 TRY, in minor units
+  source: { type: "card", card },
   threeDSecure: true,
   callbackUrl: "https://your-app.com/api/orva/callback/iyzico",
-  idempotencyKey,
+  idempotencyKey: crypto.randomUUID(),
 });
+
+if (outcome.ok && outcome.status === "requires_action") {
+  renderChallenge(outcome.action); // { type: "html", content } — hand it to the browser
+}
 ```
 
 A 3-D Secure payment returns `requires_action`; orvacon persists that state and resumes from the
-**signed finalize** when the browser returns — it never trusts the raw callback POST.
+**signed finalize** when the browser returns — it never trusts the raw callback POST. Check
+`outcome.ok` first, then `outcome.status`.
 
 ## Wire the callback (Next.js)
 

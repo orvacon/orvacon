@@ -1,23 +1,155 @@
 ---
 title: paykit
-description: The core orchestrator.
+description: The core orchestrator — operations, money, state, idempotency, the ledger, and webhooks.
 ---
 
 `@orvacon/paykit` is the core. It owns everything that isn't gateway-specific: the payment state
-machine, `Money` typing, idempotency, the hash-chained ledger, and Ed25519 webhook signing.
+machine, `Money` typing, idempotency, the hash-chained ledger, and Ed25519 webhook signing. Gateways
+plug in behind it as [connectors](/docs/connectors); your code calls one type-safe API and never
+learns which gateway ran the charge.
 
-The `orvacon()` factory validates config fail-fast and returns an instance:
+## The instance
+
+`orvacon()` validates its config fail-fast — a missing or malformed key throws at setup, not at the
+first payment — and returns the orchestrator.
+
+```ts title="lib/orva.ts"
+import { orvacon } from "@orvacon/paykit";
+import { iyzico } from "@orvacon/connector-iyzico";
+
+export const orva = orvacon({
+  database,                         // a DatabaseAdapter (bring your own)
+  connectors: [iyzico({ apiKey, secretKey })],
+  webhookSigningKey,                // Ed25519 secret, orvsk_… — signs outbound webhooks
+  webhookUrl,                       // where orvacon POSTs signed lifecycle events (optional)
+});
+```
+
+| Config | |
+| --- | --- |
+| `database` | **Required.** Your `DatabaseAdapter` — the core persists every payment, event, and ledger row through it. |
+| `connectors` | **Required.** The registered gateways. With one, `connectorId` on a request is optional. |
+| `webhookSigningKey` | **Required.** The Ed25519 secret that signs outbound webhooks. There is no unsigned mode. |
+| `webhookUrl` | Where signed lifecycle webhooks are POSTed. Omit it and only in-process `hooks` fire. |
+| `hooks` | Event-keyed in-process callbacks, e.g. `{ "payment.captured": (p) => … }`. |
+| `timeout` | Per-gateway-call timeout (ms). Default `30_000`. |
+
+## Operations
+
+Every mutating call is idempotency-keyed and returns the same discriminated shape — check `ok`
+first:
 
 ```ts
-const orva = orvacon({ database, connectors, webhookSigningKey, webhookUrl });
+const outcome = await orva.authorize({ /* … */, idempotencyKey });
+
+if (!outcome.ok) {
+  outcome.error; // { code, message } — see the error model below
+  return;
+}
+
+outcome.paymentId; // orvacon's payment id (a pay_… ULID)
+outcome.status;    // "authorized" | "captured" | "requires_action" | "refunded"
+
+if (outcome.status === "requires_action") {
+  outcome.action; // the challenge to hand the browser — { type: "html", content } for Iyzico 3DS
+}
 ```
+
+<Callout title="0.3.0 changed this shape">
+Operation outcomes now carry `ok` at the top — `outcome.ok`, not `outcome.result.ok`. Every method
+(including `reconcile` / `storeCard` / `deleteCard`) is checked the same way.
+</Callout>
 
 | Method | What it does |
 | --- | --- |
-| `authorize` | Begin a payment (returns `requires_action` for 3-D Secure). |
-| `capture` | Settle authorized funds. |
-| `refund` | Reverse a captured payment (full or partial). |
-| `handleWebhook` | Verify and apply an inbound gateway webhook. |
-| `reconcile` | Re-read a pending payment from the gateway and settle it. |
+| `authorize(req)` | Begin a payment. Returns `requires_action` with a challenge for 3-D Secure. |
+| `capture(req)` | Settle authorized funds. Rejected on a connector that captures at authorize (Iyzico). |
+| `refund(req)` | Reverse a captured payment, full or partial. |
+| `reconcile(paymentId)` | Re-read a payment stuck at `requires_action` from the gateway and settle it if the gateway already did. |
+| `storeCard(req)` | Vault a card and return a `CardToken` to charge later. orvacon stores nothing. |
+| `deleteCard(req)` | Forget a vaulted card at the gateway. |
+| `handleWebhook(connectorId, raw)` | Verify (with the gateway's own scheme) and apply an inbound gateway webhook. |
+| `drainWebhooks()` | Await every in-flight outbound delivery — call it before a short-lived process exits. |
 
-State, money typing, idempotency and the ledger are covered in their own pages — being written now.
+### The error model
+
+A failed operation carries a normalized `error.code` — the core decides on the class, never the
+gateway's raw code. Only `gateway_error` is auto-retried; an ambiguous outcome is never blindly
+retried, because a wrongly retried charge is worse than a surfaced error.
+
+| `code` | Meaning |
+| --- | --- |
+| `declined` | The gateway said no. Final. |
+| `gateway_error` | Transient gateway/network failure — the only auto-retry candidate. |
+| `invalid_request` | The request was malformed (a bug). |
+| `auth_error` | Connector credentials are invalid (configuration). |
+| `conflict` | Another request holding the same idempotency key is still in flight. |
+| `unknown` | Unclassifiable, outcome ambiguous — surfaced for reconciliation, never auto-retried. |
+
+## Money
+
+Money is **integer minor units plus a currency** — never a float. The branded `Money` type stops a
+bare `number` from being passed where money is expected, and arithmetic stays correct only through
+the helpers.
+
+```ts
+import { money, addMoney, subtractMoney, compareMoney } from "@orvacon/paykit";
+
+const price = money(1499, "TRY"); // 14.99 TRY — 1499 *minor units* (kuruş)
+```
+
+`money()` fails fast on a non-integer, negative, or malformed input. A refund is a positive amount;
+its direction is carried by the ledger, not by the sign of the number. Floats may appear only at a
+connector's gateway boundary — never in the core.
+
+## Payment state
+
+A payment moves through a state machine enforced at compile time *and* re-validated at runtime
+(connector and webhook values arrive as plain strings):
+
+```
+created → requires_action → authorized → captured → (partially_refunded →) refunded
+              ↘ failed                ↘ voided
+```
+
+`partially_refunded` is reached when a refund moves less than the captured amount; further refunds
+stay there until the cumulative total equals the capture, at which point it is `refunded`. `voided`
+arrives only as a gateway-initiated cancellation webhook — there is no core `void()` in v1.
+
+## Idempotency
+
+Every money-moving call takes a client-generated `idempotencyKey` — one key per logical intent,
+reused unchanged on every retry of that intent.
+
+```ts
+const idempotencyKey = crypto.randomUUID();
+await orva.authorize({ /* … */, idempotencyKey }); // safe to retry verbatim
+```
+
+Uniqueness is enforced atomically by a database unique constraint (not a cache). A replayed key
+returns the original outcome, never a fresh charge.
+
+## The ledger
+
+Every state transition writes a ledger entry **in the same database transaction** — the state and
+the ledger can never disagree. Entries are append-only and **hash-chained**: each row commits to the
+previous one, so tampering with history is evident without trusting anyone. There is no separate
+"mark as paid" step to forget.
+
+## Webhooks
+
+Two signature worlds, never conflated:
+
+- **Outbound** (orvacon → your endpoint): signed with **Ed25519** (asymmetric), so a leaked
+  *verification* key can't forge events. Delivery is at-least-once and fire-and-forget; the payment
+  flow never blocks on your endpoint.
+- **Inbound** (gateway → orvacon): verified in the connector's `parseWebhook` with the gateway's own
+  scheme (Iyzico hex, PayTR base64).
+
+Every signature and token comparison runs in **constant time** — never `===`. For 3-D Secure,
+orvacon trusts the signed *finalize* response, never the raw callback POST.
+
+<Cards>
+  <Card title="Connectors" href="/docs/connectors" description="How a gateway plugs in." />
+  <Card title="cryptokit" href="/docs/cryptokit" description="The Ed25519 / timing-safe primitives." />
+</Cards>
