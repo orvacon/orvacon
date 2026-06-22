@@ -1,6 +1,6 @@
 {
   "name": "@orvacon/paykit",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Provider-agnostic, TypeScript-first payment orchestration core.",
   "license": "MIT",
   "type": "module",

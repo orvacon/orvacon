@@ -1,6 +1,6 @@
 {
   "name": "@orvacon/adapter-nextjs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Next.js App Router adapter for orvacon — the gateway callback route handler, with after()-drained signed-webhook delivery.",
   "license": "MIT",
   "type": "module",

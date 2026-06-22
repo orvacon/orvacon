@@ -1,5 +1,13 @@
 # @orvacon/adapter-nextjs
 
+## 0.1.2
+
+### Patch Changes
+
+- 5ce6a0a: Widen the `@orvacon/paykit` peer range to `>=0.1.1 <1.0.0` so a pre-1.0 paykit
+  minor (which is breaking by convention, not by semver) no longer forces a major
+  version bump on the adapter.
+
 ## 0.1.1
 
 ### Patch Changes
