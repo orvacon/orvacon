@@ -19,7 +19,7 @@
     "test": "bun test"
   },
   "peerDependencies": {
-    "@orvacon/paykit": "^0.1.1",
+    "@orvacon/paykit": ">=0.1.1 <1.0.0",
     "postgres": "^3"
   },
   "devDependencies": {

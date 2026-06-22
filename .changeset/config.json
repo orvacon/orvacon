@@ -7,5 +7,17 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": [
+    "@orvacon/connector-paytr",
+    "@orvacon/adapter-drizzle",
+    "@orvacon/subkit",
+    "@orvacon/fraudkit",
+    "@orvacon/taxkit",
+    "@orvacon/ledgerkit",
+    "@orvacon/testkit",
+    "@orvacon/uikit"
+  ],
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
+  }
 }

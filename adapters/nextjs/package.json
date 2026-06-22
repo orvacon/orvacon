@@ -18,7 +18,7 @@
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@orvacon/paykit": "^0.1.1",
+    "@orvacon/paykit": ">=0.1.1 <1.0.0",
     "next": ">=15"
   },
   "devDependencies": {
