@@ -25,9 +25,13 @@ npx orvacon generate  # Postgres schema with default-deny row-level security
 ```ts title="lib/orva.ts"
 import { orvacon } from "@orvacon/paykit";
 import { iyzico } from "@orvacon/connector-iyzico";
+import { supabaseAdapter } from "@orvacon/adapter-supabase";
+import postgres from "postgres";
+
+const sql = postgres(process.env.SUPABASE_DB_URL!, { prepare: false });
 
 export const orva = orvacon({
-  database: db,
+  database: supabaseAdapter({ sql }),
   connectors: [
     iyzico({
       apiKey: process.env.IYZICO_API_KEY!,
