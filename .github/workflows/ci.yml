@@ -17,6 +17,21 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # A throwaway Postgres so the Supabase adapter's integration + RLS-deny suite
+    # actually runs here — it self-skips without DATABASE_URL. No secrets needed;
+    # the test stands up its own roles, grants, and schema against an empty database.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -36,6 +51,8 @@ jobs:
 
       - name: Test
         run: bun run test
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
 
       - name: Build
         run: bun run build
