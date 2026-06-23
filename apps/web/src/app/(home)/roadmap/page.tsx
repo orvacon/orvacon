@@ -6,7 +6,7 @@ import { Board } from "@/components/roadmap/board";
 export const metadata: Metadata = {
   title: "Roadmap",
   description:
-    "orvacon is v0.1. This is what's real today and what's coming — without dates we can't promise. Anything not shipped is labeled as such.",
+    "orvacon is v0.3. This is what's real today and what's coming — without dates we can't promise. Anything not shipped is labeled as such.",
 };
 
 const chips = ["0.x semver", "No hard dates", 'No "supports everything"'];
@@ -20,7 +20,7 @@ export default function RoadmapPage() {
           icon={<span className="h-1.5 w-1.5 rounded-full bg-accent" />}
           titleLead="Shipped, in flight,"
           titleRest="and honestly planned."
-          lead="orvacon is v0.1. This is what's real today and what's coming — without dates we can't promise. Anything not shipped is labeled as such."
+          lead="orvacon is v0.3. This is what's real today and what's coming — without dates we can't promise. Anything not shipped is labeled as such."
           footer={
             <div className="flex flex-wrap justify-center gap-x-[18px] gap-y-2.5 font-mono text-[12px] uppercase tracking-[0.08em] text-fg-faint">
               {chips.map((chip, i) => (

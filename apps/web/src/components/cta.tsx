@@ -25,7 +25,7 @@ function CtaButton({ link, variant }: { link: CtaLink; variant: "solid" | "outli
 }
 
 export function CTA({
-  eyebrow = "MIT · v0.1 · Running in your own runtime",
+  eyebrow = "MIT · v0.3 · Running in your own runtime",
   title = (
     <>
       Build payments without

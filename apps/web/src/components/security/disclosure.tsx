@@ -12,7 +12,7 @@ export function Disclosure() {
             Found something? Tell us privately.
           </h2>
           <p className="mt-4 max-w-[48ch] text-[16.5px] leading-[1.62] text-fg-dim">
-            orvacon is v0.1 and the API is still 0.x. If you find a vulnerability, please report it
+            orvacon is v0.3 and the API is still 0.x. If you find a vulnerability, please report it
             through the security policy rather than a public issue — we'll coordinate a fix and
             disclosure.
           </p>
