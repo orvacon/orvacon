@@ -6,9 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel superseded runs on a PR (repeated pushes), but never on main — every
+# commit that lands on main gets its own complete run, not one cancelled by the
+# next merge.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Least privilege: this workflow only reads the repo.
 permissions:
