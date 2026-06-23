@@ -123,8 +123,10 @@ Every money-moving call takes a client-generated `idempotencyKey` — one key pe
 reused unchanged on every retry of that intent.
 
 ```ts
-const idempotencyKey = crypto.randomUUID();
-await orva.authorize({ /* … */, idempotencyKey }); // safe to retry verbatim
+import { idempotencyKey } from "@orvacon/paykit";
+
+const key = idempotencyKey(crypto.randomUUID()); // brand a unique string
+await orva.authorize({ /* … */, idempotencyKey: key }); // safe to retry verbatim
 ```
 
 Uniqueness is enforced atomically by a database unique constraint (not a cache). A replayed key

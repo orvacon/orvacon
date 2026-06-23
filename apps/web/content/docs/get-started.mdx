@@ -49,14 +49,14 @@ payment.
 ## Take a payment
 
 ```ts
-import { money } from "@orvacon/paykit";
+import { idempotencyKey, money } from "@orvacon/paykit";
 
 const outcome = await orva.authorize({
   amount: money(1499, "TRY"), // 14.99 TRY, in minor units
   source: { type: "card", card },
   threeDSecure: true,
   callbackUrl: "https://your-app.com/api/orva/callback/iyzico",
-  idempotencyKey: crypto.randomUUID(),
+  idempotencyKey: idempotencyKey(crypto.randomUUID()),
 });
 
 if (outcome.ok && outcome.status === "requires_action") {
