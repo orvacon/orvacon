@@ -27,7 +27,7 @@
     },
     "adapters/nextjs": {
       "name": "@orvacon/adapter-nextjs",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "devDependencies": {
         "@orvacon/paykit": "workspace:*",
         "@orvacon/tsconfig": "workspace:*",
@@ -35,13 +35,13 @@
         "typescript": "5.9.2",
       },
       "peerDependencies": {
-        "@orvacon/paykit": "^0.1.1",
+        "@orvacon/paykit": ">=0.1.1 <1.0.0",
         "next": ">=15",
       },
     },
     "adapters/supabase": {
       "name": "@orvacon/adapter-supabase",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "devDependencies": {
         "@orvacon/paykit": "workspace:*",
         "@orvacon/tsconfig": "workspace:*",
@@ -50,7 +50,7 @@
         "typescript": "5.9.2",
       },
       "peerDependencies": {
-        "@orvacon/paykit": "^0.1.1",
+        "@orvacon/paykit": ">=0.1.1 <1.0.0",
         "postgres": "^3",
       },
     },
@@ -79,13 +79,14 @@
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+        "opentype.js": "2.0.0",
         "tailwindcss": "^4",
         "typescript": "5.9.2",
       },
     },
     "connectors/iyzico": {
       "name": "@orvacon/connector-iyzico",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "dependencies": {
         "@orvacon/cryptokit": "^0.1.1",
       },
@@ -96,7 +97,7 @@
         "typescript": "5.9.2",
       },
       "peerDependencies": {
-        "@orvacon/paykit": "^0.1.1",
+        "@orvacon/paykit": ">=0.2.0 <1.0.0",
       },
     },
     "connectors/paytr": {
@@ -159,7 +160,7 @@
     },
     "packages/paykit": {
       "name": "@orvacon/paykit",
-      "version": "0.1.1",
+      "version": "0.3.0",
       "dependencies": {
         "@orvacon/cryptokit": "^0.1.1",
       },
@@ -1033,6 +1034,8 @@
     "oniguruma-parser": ["oniguruma-parser@0.12.2", "", {}, "sha512-6HVa5oIrgMC6aA6WF6XyyqbhRPJrKR02L20+2+zpDtO5QAzGHAUGw5TKQvwi5vctNnRHkJYmjAhRVQF2EKdTQw=="],
 
     "oniguruma-to-es": ["oniguruma-to-es@4.3.6", "", { "dependencies": { "oniguruma-parser": "^0.12.2", "regex": "^6.1.0", "regex-recursion": "^6.0.2" } }, "sha512-csuQ9x3Yr0cEIs/Zgx/OEt9iBw9vqIunAPQkx19R/fiMq2oGVTgcMqO/V3Ybqefr1TBvosI6jU539ksaBULJyA=="],
+
+    "opentype.js": ["opentype.js@2.0.0", "", { "bin": { "ot": "bin/ot" } }, "sha512-kCyjv6xdDY1W/jLWZ/L3QhhTlKUqDZMQ5+Jdlw12b3dXkKNpYBqqlMMj0YDQPShWFTMwgZI1hG14kN3XUDSg/A=="],
 
     "orvacon": ["orvacon@workspace:packages/cli"],
 
