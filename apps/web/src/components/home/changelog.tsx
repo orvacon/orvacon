@@ -13,6 +13,10 @@ const changes = [
     ),
   },
   {
+    title: "Stored-card tokens",
+    desc: "Vault a card behind the gateway, then charge it later by token — sandbox-verified end-to-end.",
+  },
+  {
     title: "Ed25519-signed webhooks",
     desc: "Asymmetric signatures so a leaked verification key can't forge events. Timing-safe checks throughout.",
   },
@@ -48,10 +52,10 @@ export function Changelog() {
       <div className="overflow-hidden rounded-2xl border border-line bg-bg-2">
         <div className="flex flex-wrap items-center gap-3 border-b border-line px-6 py-4">
           <span className="rounded-md bg-[var(--accent-soft)] px-2.5 py-1 font-mono text-[13px] text-accent">
-            v0.1.0
+            v0.3.0
           </span>
           <span className="rounded border border-line px-2 py-0.5 font-mono text-[11px] text-fg-faint">
-            first release
+            latest release
           </span>
           <span className="ml-auto font-mono text-[12px] text-fg-faint">2026</span>
         </div>

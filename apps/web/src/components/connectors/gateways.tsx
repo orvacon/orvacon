@@ -22,12 +22,12 @@ const gateways: ConnectorItem[] = [
     ),
     desc: (
       <>
-        Raw-card and 3-D Secure, verified end-to-end against the gateway sandbox:{" "}
+        Raw-card and stored-card 3-D Secure, verified end-to-end against the gateway sandbox:{" "}
         <Flow
           steps={["authorize", "3DS", "capture", "refund", "reconcile"]}
           className="font-mono text-[12px] text-fg"
         />
-        . Stored-card tokens ship as experimental.
+        . Both flows are sandbox-verified.
       </>
     ),
     footer: <Pkg name="@orvacon/connector-iyzico" accent />,

@@ -8,14 +8,6 @@ function VerifiedBadge() {
   );
 }
 
-function ExperimentalBadge() {
-  return (
-    <span className="rounded border border-[var(--accent-line)] px-1.5 py-px font-mono text-[10px] text-accent">
-      experimental
-    </span>
-  );
-}
-
 function Card({
   name,
   badge,
@@ -126,7 +118,7 @@ export function Board() {
                 </svg>
               }
               title="Shipped"
-              tag="v0.1"
+              tag="v0.3"
               titleClass="text-fg"
               tagClass="text-fg-faint"
             />
@@ -139,7 +131,7 @@ export function Board() {
           <Card
             name="connector-iyzico"
             badge={<VerifiedBadge />}
-            desc="Raw-card 3-D Secure verified end-to-end against the sandbox."
+            desc="Raw-card and stored-card 3-D Secure, verified end-to-end against the sandbox."
           />
           <Card name="adapter-supabase" desc="Schema generation with default-deny RLS." />
           <Card name="adapter-nextjs" desc="App Router handlers and webhook verification." />
@@ -151,6 +143,14 @@ export function Board() {
                 (keys, generate).
               </>
             }
+          />
+          <Card
+            name="Documentation"
+            desc="The full Fumadocs reference — setup, paykit, connectors, adapters, cryptokit and the CLI."
+          />
+          <Card
+            name="API stabilization"
+            desc="The 0.x surface settled toward 1.0, shipped in 0.3.0."
           />
         </Column>
 
@@ -171,17 +171,12 @@ export function Board() {
         >
           <Card
             variant="accent"
-            name="Stored-card tokens"
-            badge={<ExperimentalBadge />}
-            desc="Ships today as experimental; hardening it to stable is the immediate focus."
+            name="connector-paytr"
+            desc="The second gateway behind the same contract — base64 signatures, panel-set callback, plain-text ack. Exercises the connector abstraction before we freeze it."
           />
           <Card
-            name="Documentation"
-            desc="Full docs site (built with Fumadocs) covering setup, connectors and the security model."
-          />
-          <Card
-            name="API stabilization"
-            desc="Settling the 0.x surface toward a 1.0 that won't churn underneath you."
+            name="1.0 API"
+            desc="Freeze the surface once a second connector has proven the contract holds."
           />
         </Column>
 
@@ -211,11 +206,6 @@ export function Board() {
             />
           }
         >
-          <Card
-            variant="dashed"
-            name="connector-paytr"
-            desc="PayTR behind the same connector contract."
-          />
           <Card
             variant="dashed"
             name="Bank virtual POS"

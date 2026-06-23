@@ -3,7 +3,7 @@ import { RevealOnView } from "@/components/reveal-on-view";
 import { Check } from "./decor";
 
 const stats = [
-  { value: "v0.1.0", label: "first release" },
+  { value: "v0.3.0", label: "latest release" },
   { value: "Iyzico", label: "sandbox-verified" },
   { value: "6", label: "packages shipped" },
   { value: "MIT", label: "open source" },
@@ -37,14 +37,14 @@ export function Status() {
             05 — Building in the open
           </div>
           <h2 className="mt-4 max-w-[14ch] text-[clamp(28px,3.6vw,44px)] font-semibold leading-[1.08] tracking-[-0.03em]">
-            v0.1 — honest about scope.
+            v0.3 — honest about scope.
           </h2>
         </div>
         <div className="flex h-full min-w-0 items-end">
           <p className="m-0 max-w-[54ch] text-[16.5px] leading-[1.62] text-fg-dim">
-            This is the first release. The Iyzico raw-card 3-D Secure flow is verified end-to-end
-            against the gateway sandbox. The stored-card token flow ships but is experimental. The
-            API is 0.x and may change before 1.0.
+            This is an early release. The Iyzico raw-card and stored-card 3-D Secure flows are both
+            verified end-to-end against the gateway sandbox. The API is 0.x and may change before
+            1.0.
           </p>
         </div>
       </div>

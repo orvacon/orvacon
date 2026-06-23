@@ -12,6 +12,6 @@ export const gitConfig = {
 // The small badge under the hero subtitle. Point it wherever the latest proof
 // lives — the changelog today, a launch post tomorrow.
 export const heroBadge = {
-  label: "v0.1 · Verified · Iyzico sandbox",
+  label: "v0.3 · Verified · Iyzico sandbox",
   href: "/changelog",
 };
