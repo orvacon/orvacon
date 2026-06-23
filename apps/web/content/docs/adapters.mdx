@@ -20,8 +20,11 @@ with a generated schema carrying **default-deny row-level security**.
 
 ```ts title="lib/orva.ts"
 import { supabaseAdapter } from "@orvacon/adapter-supabase";
+import postgres from "postgres";
 
-const database = supabaseAdapter({ connectionString: process.env.DATABASE_URL! });
+// `prepare: false` is load-bearing behind a serverless pooler (Supabase, PgBouncer).
+const sql = postgres(process.env.SUPABASE_DB_URL!, { prepare: false });
+const database = supabaseAdapter({ sql });
 ```
 
 Generate the schema + RLS migration with the [CLI](/docs/cli):
