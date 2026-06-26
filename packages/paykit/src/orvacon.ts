@@ -139,7 +139,9 @@ function collectHooks(
       NormalizedEventType,
       HookHandler,
     ][]) {
-      (handlers[type] ??= []).push(handler);
+      const list = handlers[type] ?? [];
+      list.push(handler);
+      handlers[type] = list;
     }
   };
   add(configHooks);
