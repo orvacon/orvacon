@@ -17,6 +17,7 @@
     "fxkit",
     "invoicekit",
     "ledgerkit",
-    "vaultkit"
+    "vaultkit",
+    "dunningkit"
   ]
 }

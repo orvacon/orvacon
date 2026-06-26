@@ -1,0 +1,47 @@
+---
+title: dunningkit
+icon: RefreshCw
+description: Recover failed payments with a scheduled, backed-off retry policy — a stateless dunning state machine.
+---
+
+`@orvacon/dunningkit` recovers a failed payment with a backed-off retry schedule. It is stateless: it
+performs no charge and keeps no store of its own — your cron re-runs the charge and persists the state;
+dunningkit owns only the policy (when to retry, when to give up).
+
+```bash
+bun add @orvacon/dunningkit
+```
+
+```ts
+import { dunningkit, hours, days } from "@orvacon/dunningkit";
+
+const dunning = dunningkit({ schedule: [hours(1), days(1), days(3)] }); // three retries
+
+// a charge failed — open a cycle, persist the state:
+let state = dunning.open(outcome, now); // your orva.authorize() result goes straight in
+
+// your cron, for each due record:
+if (dunning.due(state, now)) {
+  const retry = await orva.authorize(charge);
+  state = dunning.advance(state, retry, now);
+  if (state.status !== "scheduled") await stopDunning(paymentId, state);
+}
+```
+
+`open` / `advance` fold a charge outcome into the next `DunningState` — `scheduled` → `recovered`
+(a retry succeeded) · `exhausted` (retryable failures ran the schedule out) · `abandoned` (a non-retryable
+error, gave up at once).
+
+<Callout>
+**Dunning is not the core's auto-retry.** [`isRetryableError`](/docs/paykit) governs *immediate* auto-retry
+— re-sending the same request now — and only `gateway_error` qualifies: a `declined` charge re-sent at once
+just declines again, risking a double charge. Dunning is the opposite, a *delayed* re-attempt days later,
+when the customer may have topped up. So dunningkit retries `declined` **and** `gateway_error` by default,
+while merchant-side errors (`invalid_request`, `auth_error`, `conflict`) are abandoned at once. Override
+with `shouldRetry`.
+</Callout>
+
+<Cards>
+  <Card title="vaultkit" href="/docs/vaultkit" description="The saved card a retry re-charges." />
+  <Card title="paykit — errors" href="/docs/paykit" description="The error taxonomy dunning reads." />
+</Cards>
