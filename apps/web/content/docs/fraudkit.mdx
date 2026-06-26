@@ -1,0 +1,43 @@
+---
+title: fraudkit
+icon: ShieldAlert
+description: Veto risky authorizes with simple rules — an orvacon plugin.
+---
+
+`@orvacon/fraudkit` is a [plugin](/docs/paykit) that vetoes risky authorizes before the gateway. Each
+rule is checked in `beforeAuthorize`; the first match rejects the charge with `declined` and no
+payment is created.
+
+```bash
+bun add @orvacon/fraudkit
+```
+
+```ts
+import { money, orvacon } from "@orvacon/paykit";
+import { fraudkit } from "@orvacon/fraudkit";
+
+orvacon({
+  // … database, connectors, webhookSigningKey
+  plugins: [
+    fraudkit({
+      maxAmount: money(50_000, "TRY"),
+      blockCountries: ["NK"],
+      rule: (req) => (req.buyer?.email?.endsWith("@spam.test") ? "blocklisted sender" : null),
+    }),
+  ],
+});
+```
+
+| Rule | Vetoes when |
+| --- | --- |
+| `maxAmount` | the amount exceeds it (same currency only) |
+| `blockCountries` | the billing address country is in the list |
+| `rule(request)` | your function returns a reason string |
+
+A vetoed authorize returns `{ ok: false, error: { code: "declined" } }` — the gateway is never
+called and nothing is persisted.
+
+<Cards>
+  <Card title="paykit — Plugins" href="/docs/paykit" description="The plugin contract fraudkit implements." />
+  <Card title="taxkit" href="/docs/taxkit" description="The other beforeAuthorize plugin." />
+</Cards>
