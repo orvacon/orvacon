@@ -30,6 +30,7 @@ import {
   idempotencyKey,
   money,
   type OperationOutcome,
+  type OrvaconPlugin,
   orvacon,
   type Payment,
   type PaymentId,
@@ -789,5 +790,145 @@ describe("toWebHandler", () => {
     );
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe(returnUrl.failure);
+  });
+});
+
+describe("plugins", () => {
+  const taxOf = (minor: number): OrvaconPlugin => ({
+    name: "tax",
+    beforeAuthorize: (_ctx, req) => ({ ...req, amount: addMoney(req.amount, money(minor, "TRY")) }),
+  });
+
+  test("beforeAuthorize rewrites the request — the persisted (and gateway) amount reflects it", async () => {
+    const connector = fakeConnector();
+    const db = memoryAdapter();
+    const pay = orvacon({
+      database: db,
+      connectors: [connector],
+      webhookSigningKey: SIGNING_KEY,
+      plugins: [taxOf(180)],
+    });
+    const outcome = await pay.authorize({
+      idempotencyKey: idempotencyKey("k-tax"),
+      amount: money(1_000, "TRY"),
+      source: { type: "token", token: { token: "tok" } },
+    });
+    const id = requirePaymentId(outcome);
+    expect(db.payments.get(id)?.amount).toEqual(money(1_180, "TRY"));
+    expect(connector.authorizeInputs[0]?.amount).toEqual(money(1_180, "TRY"));
+  });
+
+  test("plugins chain in order; each sees the previous one's transform", async () => {
+    const connector = fakeConnector();
+    const db = memoryAdapter();
+    const pay = orvacon({
+      database: db,
+      connectors: [connector],
+      webhookSigningKey: SIGNING_KEY,
+      plugins: [taxOf(10), taxOf(5)],
+    });
+    const outcome = await pay.authorize({
+      idempotencyKey: idempotencyKey("k-chain"),
+      amount: money(100, "TRY"),
+      source: { type: "token", token: { token: "tok" } },
+    });
+    expect(db.payments.get(requirePaymentId(outcome))?.amount).toEqual(money(115, "TRY"));
+  });
+
+  test("beforeAuthorize can veto — the gateway is never called and no payment is persisted", async () => {
+    const fraud: OrvaconPlugin = {
+      name: "fraud",
+      beforeAuthorize: () => ({ reject: { code: "declined", message: "blocked by fraud rules" } }),
+    };
+    const connector = fakeConnector();
+    const db = memoryAdapter();
+    const pay = orvacon({
+      database: db,
+      connectors: [connector],
+      webhookSigningKey: SIGNING_KEY,
+      plugins: [fraud],
+    });
+    const outcome = await pay.authorize({
+      idempotencyKey: idempotencyKey("k-block"),
+      amount: money(1_000, "TRY"),
+      source: { type: "token", token: { token: "tok" } },
+    });
+    expect(outcome.ok).toBe(false);
+    if (!outcome.ok) {
+      expect(outcome.error.code).toBe("declined");
+    }
+    expect(connector.calls.authorize).toBe(0);
+    expect(db.payments.size).toBe(0);
+  });
+
+  test("a throwing beforeAuthorize fails the charge closed (no silent skip)", async () => {
+    const errors: Error[] = [];
+    const boom: OrvaconPlugin = {
+      name: "boom",
+      beforeAuthorize: () => {
+        throw new Error("tax service down");
+      },
+    };
+    const connector = fakeConnector();
+    const db = memoryAdapter();
+    const pay = orvacon({
+      database: db,
+      connectors: [connector],
+      webhookSigningKey: SIGNING_KEY,
+      onError: (e) => errors.push(e),
+      plugins: [boom],
+    });
+    const outcome = await pay.authorize({
+      idempotencyKey: idempotencyKey("k-boom-before"),
+      amount: money(1_000, "TRY"),
+      source: { type: "token", token: { token: "tok" } },
+    });
+    expect(outcome.ok).toBe(false);
+    expect(connector.calls.authorize).toBe(0);
+    expect(errors.some((e) => e.message.includes("tax service down"))).toBe(true);
+  });
+
+  test("plugin hooks fire alongside the instance's own hooks, each isolated", async () => {
+    const fired: string[] = [];
+    const errors: Error[] = [];
+    const connector = fakeConnector(); // autoCapture: true → captured
+    const db = memoryAdapter();
+    const pay = orvacon({
+      database: db,
+      connectors: [connector],
+      webhookSigningKey: SIGNING_KEY,
+      onError: (e) => errors.push(e),
+      hooks: {
+        "payment.captured": () => {
+          fired.push("app");
+        },
+      },
+      plugins: [
+        {
+          name: "notify",
+          hooks: {
+            "payment.captured": () => {
+              fired.push("notify");
+            },
+          },
+        },
+        {
+          name: "boom",
+          hooks: {
+            "payment.captured": () => {
+              throw new Error("hook exploded");
+            },
+          },
+        },
+      ],
+    });
+    const outcome = await pay.authorize({
+      idempotencyKey: idempotencyKey("k-hooks"),
+      amount: money(1_000, "TRY"),
+      source: { type: "token", token: { token: "tok" } },
+    });
+    expect(outcome.ok).toBe(true);
+    expect(fired).toEqual(["app", "notify"]);
+    expect(errors.some((e) => e.message.includes("hook exploded"))).toBe(true);
   });
 });

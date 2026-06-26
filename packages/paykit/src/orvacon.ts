@@ -23,11 +23,16 @@ import { buildConnectorRegistry, type ConnectorRegistry } from "./registry";
 import { assertTransition, canTransition, type Payment, type PaymentStatus } from "./state";
 import type {
   AuthorizeRequest,
+  BeforeAuthorizeResult,
   CaptureRequest,
   DeleteCardRequest,
+  HookHandler,
+  Hooks,
   OperationOutcome,
   Orvacon,
   OrvaconConfig,
+  OrvaconPlugin,
+  PluginContext,
   ReconcileResult,
   RefundRequest,
   StoreCardRequest,
@@ -36,6 +41,7 @@ import type {
 
 export type {
   AuthorizeRequest,
+  BeforeAuthorizeResult,
   CaptureRequest,
   DeleteCardRequest,
   HookHandler,
@@ -43,6 +49,8 @@ export type {
   OperationOutcome,
   Orvacon,
   OrvaconConfig,
+  OrvaconPlugin,
+  PluginContext,
   ReconcileResult,
   RefundRequest,
   StoreCardRequest,
@@ -87,6 +95,16 @@ function validateConfig(config: OrvaconConfig): void {
   if (!Array.isArray(config.connectors)) {
     throw new TypeError("orvacon: config.connectors must be an array");
   }
+  if (config.plugins !== undefined) {
+    if (!Array.isArray(config.plugins)) {
+      throw new TypeError("orvacon: config.plugins must be an array");
+    }
+    for (const plugin of config.plugins) {
+      if (typeof plugin !== "object" || plugin === null || typeof plugin.name !== "string") {
+        throw new TypeError("orvacon: each plugin must be an object with a string name");
+      }
+    }
+  }
   if (typeof config.webhookSigningKey !== "string" || config.webhookSigningKey.length === 0) {
     throw new TypeError("orvacon: config.webhookSigningKey is required (no unsigned-webhook mode)");
   }
@@ -107,6 +125,31 @@ function validateConfig(config: OrvaconConfig): void {
 }
 
 /**
+ * Merge the instance's own hooks with every plugin's hooks into one handler list
+ * per event, so a `payment.captured` (say) fires the app hook *and* each plugin's
+ * — each isolated, a throw in one reported while the rest still run.
+ */
+function collectHooks(
+  configHooks: Hooks | undefined,
+  plugins: readonly OrvaconPlugin[],
+): Partial<Record<NormalizedEventType, HookHandler[]>> {
+  const handlers: Partial<Record<NormalizedEventType, HookHandler[]>> = {};
+  const add = (source: Hooks | undefined): void => {
+    for (const [type, handler] of Object.entries(source ?? {}) as [
+      NormalizedEventType,
+      HookHandler,
+    ][]) {
+      (handlers[type] ??= []).push(handler);
+    }
+  };
+  add(configHooks);
+  for (const plugin of plugins) {
+    add(plugin.hooks);
+  }
+  return handlers;
+}
+
+/**
  * Construct an orvacon instance: validates config fail-fast, builds the
  * connector registry, and wires the orchestration over the database adapter.
  */
@@ -115,7 +158,9 @@ export function orvacon(config: OrvaconConfig): Orvacon {
   const registry: ConnectorRegistry = buildConnectorRegistry(config.connectors);
   const db = config.database;
   const logger = config.logger ?? noopLogger;
-  const hooks = config.hooks ?? {};
+  const plugins = config.plugins ?? [];
+  const pluginContext: PluginContext = { logger };
+  const hookHandlers = collectHooks(config.hooks, plugins);
   const onError = config.onError;
   const timeoutMs = config.timeout ?? DEFAULT_TIMEOUT_MS;
   const signingKey = parseSecretKey(config.webhookSigningKey);
@@ -141,15 +186,48 @@ export function orvacon(config: OrvaconConfig): Orvacon {
   }
 
   async function fireHook(payment: Payment, event: NormalizedEvent): Promise<void> {
-    const handler = hooks[event.type];
-    if (!handler) {
+    const handlers = hookHandlers[event.type];
+    if (!handlers) {
       return;
     }
-    try {
-      await handler(payment, event);
-    } catch (error) {
-      report(error);
+    for (const handler of handlers) {
+      try {
+        await handler(payment, event);
+      } catch (error) {
+        report(error);
+      }
     }
+  }
+
+  /**
+   * Run the plugin before-authorize chain: each plugin may rewrite the request
+   * (the next sees the rewrite) or veto it. A plugin that throws fails the charge
+   * closed — a fraud or tax step that errored must not be silently skipped.
+   */
+  async function runBeforeAuthorize(
+    request: AuthorizeRequest,
+  ): Promise<{ ok: true; request: AuthorizeRequest } | { ok: false; error: ConnectorError }> {
+    let current = request;
+    for (const plugin of plugins) {
+      if (!plugin.beforeAuthorize) {
+        continue;
+      }
+      let result: BeforeAuthorizeResult;
+      try {
+        result = await plugin.beforeAuthorize(pluginContext, current);
+      } catch (error) {
+        report(error);
+        return {
+          ok: false,
+          error: { code: "unknown", message: `plugin "${plugin.name}" failed in beforeAuthorize` },
+        };
+      }
+      if ("reject" in result) {
+        return { ok: false, error: result.reject };
+      }
+      current = result;
+    }
+    return { ok: true, request: current };
   }
 
   /**
@@ -291,34 +369,39 @@ export function orvacon(config: OrvaconConfig): Orvacon {
       return fail("invalid_request", `connector "${connector.id}" does not support 3-D Secure`);
     }
     return withIdempotency(request.idempotencyKey, async () => {
+      const intercepted = await runBeforeAuthorize(request);
+      if (!intercepted.ok) {
+        return { ok: false, error: intercepted.error };
+      }
+      const req = intercepted.request;
       const id = generatePaymentId();
       const nowIso = new Date().toISOString();
       const _payment = await db.createPayment({
         id,
         status: "created",
-        amount: request.amount,
+        amount: req.amount,
         connectorId: connector.id,
-        userId: request.userId,
+        userId: req.userId,
         createdAt: nowIso,
         updatedAt: nowIso,
       });
       const result = await connector.authorize(makeContext(), {
         paymentId: id,
-        amount: request.amount,
-        source: request.source,
-        threeDSecure: request.threeDSecure,
-        callbackUrl: request.callbackUrl,
-        buyer: request.buyer,
-        billingAddress: request.billingAddress,
-        shippingAddress: request.shippingAddress,
-        basket: request.basket,
+        amount: req.amount,
+        source: req.source,
+        threeDSecure: req.threeDSecure,
+        callbackUrl: req.callbackUrl,
+        buyer: req.buyer,
+        billingAddress: req.billingAddress,
+        shippingAddress: req.shippingAddress,
+        basket: req.basket,
       });
       if (!result.ok) {
         const failed = await db.updatePaymentStatus(id, "created", "failed");
         if (failed) {
           await emit(
             failed,
-            syntheticEvent("payment.failed", failed, request.amount, result.error.raw),
+            syntheticEvent("payment.failed", failed, req.amount, result.error.raw),
           );
         }
         return withPaymentId(result, id);
@@ -338,11 +421,11 @@ export function orvacon(config: OrvaconConfig): Orvacon {
         "created",
         result.status,
         { gatewayReference: result.gatewayReference },
-        result.status === "captured" ? { amount: request.amount, kind: "capture" } : undefined,
+        result.status === "captured" ? { amount: req.amount, kind: "capture" } : undefined,
       );
       if (updated) {
         const type = result.status === "captured" ? "payment.captured" : "payment.authorized";
-        await emit(updated, syntheticEvent(type, updated, request.amount, result.raw));
+        await emit(updated, syntheticEvent(type, updated, req.amount, result.raw));
       }
       return withPaymentId(result, id);
     });

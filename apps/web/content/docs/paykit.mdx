@@ -152,6 +152,39 @@ Two signature worlds, never conflated:
 Every signature and token comparison runs in **constant time** — never `===`. For 3-D Secure,
 orvacon trusts the signed *finalize* response, never the raw callback POST.
 
+## Plugins
+
+A plugin extends the orchestration without touching the connector or your application code — bound
+with `plugins: []`. It hooks in at two points:
+
+- **`beforeAuthorize`** runs before the gateway, in registration order (each plugin sees the previous
+  one's transform), and may **rewrite** the request — add tax to the amount — or **veto** it — a fraud
+  block. A `beforeAuthorize` that throws fails the charge **closed**, so a tax or fraud step that
+  errored is never silently skipped.
+- **`hooks`** react to persisted lifecycle events, merged with the instance's own `hooks` and each
+  isolated — a throwing handler is reported through `onError`, never breaking the payment flow.
+
+```ts
+import { addMoney, money, type OrvaconPlugin } from "@orvacon/paykit";
+
+const taxkit = (rate: number): OrvaconPlugin => ({
+  name: "taxkit",
+  beforeAuthorize: (_ctx, request) => ({
+    ...request,
+    amount: addMoney(
+      request.amount,
+      money(Math.round(request.amount.amount * rate), request.amount.currency),
+    ),
+  }),
+});
+
+orvacon({ /* … */, plugins: [taxkit(0.2)] });
+```
+
+The core never lets a plugin change the `idempotencyKey` or `connectorId` — a plugin reshapes *what*
+is charged, never *where* or the replay identity. Higher-level kits (subscriptions, tax, fraud) build
+on this same contract.
+
 <Cards>
   <Card title="Connectors" href="/docs/connectors" description="How a gateway plugs in." />
   <Card title="cryptokit" href="/docs/cryptokit" description="The Ed25519 / timing-safe primitives." />
