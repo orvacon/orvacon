@@ -1,0 +1,27 @@
+{
+  "name": "@orvacon/notifykit",
+  "version": "0.0.0",
+  "description": "Notify customers on payment lifecycle events (email/SMS), via hooks",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@orvacon/paykit": "workspace:^"
+  },
+  "devDependencies": {
+    "@orvacon/paykit": "workspace:*",
+    "@orvacon/tsconfig": "workspace:*",
+    "typescript": "5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

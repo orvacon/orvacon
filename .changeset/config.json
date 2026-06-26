@@ -14,7 +14,14 @@
     "@orvacon/fraudkit",
     "@orvacon/taxkit",
     "@orvacon/ledgerkit",
-    "@orvacon/uikit"
+    "@orvacon/uikit",
+    "@orvacon/notifykit",
+    "@orvacon/metricskit",
+    "@orvacon/vaultkit",
+    "@orvacon/dunningkit",
+    "@orvacon/invoicekit",
+    "@orvacon/fxkit",
+    "@orvacon/disputekit"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true

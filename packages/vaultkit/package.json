@@ -1,0 +1,27 @@
+{
+  "name": "@orvacon/vaultkit",
+  "version": "0.0.0",
+  "description": "Saved-card management for a customer over the connector&#x27;s card vault",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@orvacon/paykit": "workspace:^"
+  },
+  "devDependencies": {
+    "@orvacon/paykit": "workspace:*",
+    "@orvacon/tsconfig": "workspace:*",
+    "typescript": "5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
