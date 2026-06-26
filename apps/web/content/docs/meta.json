@@ -18,6 +18,7 @@
     "invoicekit",
     "ledgerkit",
     "vaultkit",
-    "dunningkit"
+    "dunningkit",
+    "subkit"
   ]
 }

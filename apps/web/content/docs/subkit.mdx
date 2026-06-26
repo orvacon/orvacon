@@ -1,0 +1,54 @@
+---
+title: subkit
+icon: Repeat
+description: Recurring charges for orvacon — a stateless subscription state machine with renewal, dunning, and cancel.
+---
+
+`@orvacon/subkit` owns the subscription state machine — when a subscription is due, charging the saved card,
+advancing the period, and routing a failed renewal through dunning — while your database owns the rows and
+your cron drives the loop. It holds no money and no store: each charge runs card → your gateway, and every
+state change comes back for you to persist.
+
+```bash
+bun add @orvacon/subkit @orvacon/dunningkit
+```
+
+```ts
+import { subkit } from "@orvacon/subkit";
+import { dunningkit, days } from "@orvacon/dunningkit";
+
+const subs = subkit({ orva, dunning: dunningkit({ schedule: [days(1), days(3), days(7)] }) });
+
+let sub = subs.start({
+  id: "sub_42",
+  amount: money(5_000, "TRY"),
+  card, // a vaultkit CardOnFile, or any { token, userKey? }
+  interval: { unit: "month", count: 1 },
+  firstChargeAt: now,
+});
+
+// your cron:
+if (subs.due(sub, now)) {
+  const { subscription } = await subs.run(sub, now);
+  await myDb.subscriptions.update(sub.id, subscription); // active | past_due | canceled
+}
+```
+
+`run` charges and folds the result into the next state: a success advances `currentPeriodEnd` by one
+interval; a failure opens or advances dunning (`past_due` while retries remain, `canceled` once spent).
+`cancel` / `pause` / `resume` round out the lifecycle. Renewals are calendar-correct — a monthly
+subscription anchored on Jan 31 renews Feb 28, not skipping into March. The per-charge idempotency key is
+derived from the subscription id, period, and dunning attempt, so a cron that fires twice never double
+charges.
+
+<Callout>
+**Scope is a recurring charge, not a billing platform.** subkit charges the same amount each period and
+handles renewal, dunning, and cancellation. Proration, plan changes mid-cycle, metered usage,
+[tax](/docs/taxkit), and [invoicing](/docs/invoicekit) live in your code above it — subkit stays the small,
+correct core they build on. It composes the kits below rather than re-implementing them.
+</Callout>
+
+<Cards>
+  <Card title="vaultkit" href="/docs/vaultkit" description="The saved card subkit charges each period." />
+  <Card title="dunningkit" href="/docs/dunningkit" description="The retry policy a failed renewal runs through." />
+</Cards>
