@@ -11,7 +11,6 @@
     "@orvacon/connector-paytr",
     "@orvacon/adapter-drizzle",
     "@orvacon/subkit",
-    "@orvacon/fraudkit",
     "@orvacon/ledgerkit",
     "@orvacon/uikit",
     "@orvacon/notifykit",
