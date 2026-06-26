@@ -6,6 +6,7 @@ import {
   type PaymentId,
   type RawWebhook,
 } from "@orvacon/paykit";
+import { buildNormalizedEvent, movesValue } from "./event";
 
 /** Input to {@link mockCallback}. */
 export interface MockCallbackInput {
@@ -28,14 +29,6 @@ interface MockWebhookBody {
   occurredAt: string;
   amountMinor?: number;
   currency?: string;
-}
-
-function movesValue(
-  type: NormalizedEventType,
-): type is "payment.authorized" | "payment.captured" | "payment.refunded" {
-  return (
-    type === "payment.authorized" || type === "payment.captured" || type === "payment.refunded"
-  );
 }
 
 /**
@@ -76,17 +69,16 @@ export function mockCallback(input: MockCallbackInput): RawWebhook {
 export function decodeMockWebhook(raw: RawWebhook): NormalizedEvent {
   const text = typeof raw.body === "string" ? raw.body : new TextDecoder().decode(raw.body);
   const parsed = JSON.parse(text) as MockWebhookBody;
-  const base = {
-    paymentId: parsed.paymentId as PaymentId,
-    gatewayReference: parsed.gatewayReference,
-    occurredAt: parsed.occurredAt,
-    raw: parsed,
-  };
-  if (movesValue(parsed.type)) {
-    if (parsed.amountMinor === undefined || parsed.currency === undefined) {
-      throw new TypeError(`Mock webhook "${parsed.type}" is missing its amount.`);
-    }
-    return { ...base, type: parsed.type, amount: money(parsed.amountMinor, parsed.currency) };
-  }
-  return { ...base, type: parsed.type };
+  const amount =
+    parsed.amountMinor !== undefined && parsed.currency !== undefined
+      ? money(parsed.amountMinor, parsed.currency)
+      : undefined;
+  return buildNormalizedEvent(
+    parsed.paymentId as PaymentId,
+    parsed.gatewayReference,
+    parsed.occurredAt,
+    parsed.type,
+    amount,
+    parsed,
+  );
 }
