@@ -12,7 +12,6 @@
     "@orvacon/adapter-drizzle",
     "@orvacon/subkit",
     "@orvacon/uikit",
-    "@orvacon/vaultkit",
     "@orvacon/dunningkit",
     "@orvacon/disputekit"
   ],
