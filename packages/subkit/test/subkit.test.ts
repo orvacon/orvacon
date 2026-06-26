@@ -1,8 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { days, dunningkit } from "@orvacon/dunningkit";
 import { money, type OperationOutcome, orvacon } from "@orvacon/paykit";
 import { mockConnector, mockDatabase, testSigningKey } from "@orvacon/testkit";
-import { addInterval, subkit } from "../src/index";
+import { addInterval, days, subkit } from "../src/index";
 
 const NOW = "2026-01-15T00:00:00.000Z";
 const monthly = { unit: "month", count: 1 } as const;
@@ -57,10 +56,7 @@ describe("subkit", () => {
   });
 
   test("a failed renewal enters dunning, then cancels once the schedule is spent", async () => {
-    const subs = subkit({
-      orva: failingOrva("declined"),
-      dunning: dunningkit({ schedule: [days(1)] }),
-    });
+    const subs = subkit({ orva: failingOrva("declined"), retries: [days(1)] });
     const first = await subs.run(newSub(subs, NOW), NOW);
     expect(first.subscription.status).toBe("past_due");
     expect(first.subscription.dunning).toMatchObject({ status: "scheduled", failures: 1 });

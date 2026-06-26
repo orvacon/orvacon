@@ -256,14 +256,19 @@
     },
     "packages/subkit": {
       "name": "@orvacon/subkit",
-      "version": "1.0.0",
+      "version": "0.0.0",
+      "dependencies": {
+        "@orvacon/dunningkit": "workspace:^",
+      },
       "devDependencies": {
         "@orvacon/paykit": "workspace:*",
+        "@orvacon/testkit": "workspace:*",
         "@orvacon/tsconfig": "workspace:*",
+        "@types/bun": "1.3.14",
         "typescript": "5.9.2",
       },
       "peerDependencies": {
-        "@orvacon/paykit": "workspace:^",
+        "@orvacon/paykit": ">=0.4.0 <1.0.0",
       },
     },
     "packages/taxkit": {
