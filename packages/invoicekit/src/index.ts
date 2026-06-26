@@ -25,6 +25,8 @@ export interface InvoiceTax {
 export interface InvoiceLine {
   description: string;
   quantity: number;
+  /** Unit of measure shown next to the quantity, e.g. `"Adet"`, `"Ay"`, `"Yıl"`. */
+  unit?: string;
   unitPrice: Money;
 }
 
@@ -58,8 +60,10 @@ export interface InvoiceInput {
   issuedAt?: string;
   /** Document type, e.g. `"e-Arşiv Fatura"`. */
   documentType?: string;
-  /** e-Fatura / e-Arşiv document UUID (ETTN), for a fiscal document. */
+  /** Reference for the fiscal document this accompanies (e.g. an e-Fatura ETTN/UUID). */
   ettn?: string;
+  /** The total spelled out, e.g. `"İkibindörtyüz Türk Lirası"`. Rendered if you provide it. */
+  amountInWords?: string;
 }
 
 /** Options for {@link invoicekit}. */
@@ -141,7 +145,7 @@ function renderInvoice(options: InvoicekitOptions, input: InvoiceInput): string 
       (line) => `
         <tr>
           <td>${esc(line.description)}</td>
-          <td class="num">${line.quantity}</td>
+          <td class="num">${line.quantity}${line.unit ? `&nbsp;${esc(line.unit)}` : ""}</td>
           <td class="num">${money_(line.unitPrice, locale)}</td>
           <td class="num">${money_(lineTotal(line), locale)}</td>
         </tr>`,
@@ -184,7 +188,7 @@ function renderInvoice(options: InvoicekitOptions, input: InvoiceInput): string 
   .totals > div { display: flex; justify-content: space-between; gap: 24px; padding: 7px 0; }
   .totals .grand { margin-top: 6px; padding-top: 14px; border-top: 2px solid var(--ink);
     font-size: 17px; font-weight: 700; }
-  footer { margin-top: 38px; padding-top: 18px; border-top: 1px solid var(--line);
+  .words { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line);
     color: var(--dim); font-size: 12.5px; }
   @media print { body { background: #fff; } .invoice { margin: 0; border: 0; } }
 </style>
@@ -230,12 +234,9 @@ function renderInvoice(options: InvoicekitOptions, input: InvoiceInput): string 
     <div class="totals">
       ${subtotal ? `<div><span>${esc(t.subtotal)}</span><span class="num">${money_(subtotal, locale)}</span></div>` : ""}
       ${taxAmount ? `<div><span>${esc(taxLabel)}</span><span class="num">${money_(taxAmount, locale)}</span></div>` : ""}
-      <div class="grand"><span>${esc(t.total)}</span><span class="num">${money_(total, locale)} ${esc(total.currency)}</span></div>
+      <div class="grand"><span>${esc(t.total)}</span><span class="num">${money_(total, locale)}</span></div>
     </div>
-    <footer>
-      ${esc(t.paid)}${input.payment.gatewayReference ? ` · ref ${esc(input.payment.gatewayReference)}` : ""} ·
-      ${esc(formatDateTime(input.payment.createdAt, locale))}
-    </footer>
+    ${input.amountInWords ? `<div class="words">${esc(input.amountInWords)}</div>` : ""}
   </div>
 </body>
 </html>`;

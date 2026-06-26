@@ -1,11 +1,9 @@
 # @orvacon/invoicekit
 
-Render a printable HTML invoice from an [orvacon](https://orvacon.com) payment — a single
-self-contained document (inline styles, no external assets) you can email, attach, or print to PDF.
-
-Built for a real **tax invoice**: it breaks out the tax (lines are the pre-tax base, then a tax line,
-then the total), carries both parties' tax id and tax office, and shows a document type + ETTN for a
-Turkish **e-Arşiv / e-Fatura**. Set `labels` to Turkish for a *fatura*.
+Render a printable HTML **invoice document** from an [orvacon](https://orvacon.com) payment — a single
+self-contained file (inline styles, no external assets) you can email, attach, or print to PDF. It
+carries the fields a tax invoice needs: a tax breakdown, both parties' tax id and tax office, units,
+and an amount in words.
 
 ## Install
 
@@ -31,26 +29,30 @@ const invoicer = invoicekit({
 });
 
 const html = invoicer.render({
-  payment, // the settled Payment
-  documentType: "e-Arşiv Fatura",
+  payment,
+  documentType: "e-Fatura",
   ettn: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  amountInWords: "İkibindörtyüz Türk Lirası",
   buyer: { name: "Lovelace Ltd. Şti.", taxId: "9876543210", taxOffice: "Beşiktaş V.D." },
-  lines: [{ description: "orvacon Pro — yıllık abonelik", quantity: 1, unitPrice: money(200_000, "TRY") }],
+  lines: [{ description: "orvacon Pro — yıllık abonelik", quantity: 1, unit: "Yıl", unitPrice: money(200_000, "TRY") }],
   tax: { rate: 0.2, label: "KDV %20" }, // 2.000 matrah → 400 KDV → 2.400 toplam
 });
 ```
 
-Line totals are `unitPrice × quantity`; the `tax` rate is applied to the subtotal (omit it for a
-tax-free invoice). Money and dates follow each currency's and locale's real conventions via `Intl`,
-the grand total carries its ISO code, and **user-provided strings are HTML-escaped**. `render` returns
-a string — you choose how to deliver it (email body, `puppeteer`/`weasyprint` to PDF, an HTTP
-response).
+The `tax` rate applies to the line subtotal; money uses one consistent symbol via `Intl`; lines carry
+a `unit`; labels are overridable (Turkish for a *fatura*); and **user-provided strings are
+HTML-escaped**. `render` returns a string — you choose how to deliver it.
 
 See it live: **[orvacon.com/preview/invoice](https://orvacon.com/preview/invoice)**.
 
-> **Not a GİB integration.** invoicekit renders the *document*; filing an e-Arşiv/e-Fatura with the
-> tax authority (UBL-TR, the ETTN, the portal) stays with your fiscal provider. It gives you the human-
-> readable invoice with the fields a valid one needs.
+## A renderer, not a GİB integration
+
+invoicekit renders the **document**. It does **not** file an e-Fatura / e-Arşiv with the tax authority
+(UBL-TR, ETTN allocation, the GİB portal), and it does **not** choose the scenario — a registered
+taxpayer (*mükellef*) gets an **e-Fatura**, anyone else an **e-Arşiv**, and that decision needs a GİB
+*mükellef* query. Both belong to your e-invoicing provider. orvacon stays out of fiscal regulation by
+design — the same reason it never holds money. You pass `documentType` (and the ETTN / amount-in-words
+your provider supplies); invoicekit lays it out.
 
 ## License
 
