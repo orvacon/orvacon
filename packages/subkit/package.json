@@ -1,28 +1,48 @@
 {
   "name": "@orvacon/subkit",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Subscriptions for orvacon (trial, renewal, dunning, cancel).",
+  "version": "0.0.0",
+  "description": "Recurring charges for orvacon — a stateless subscription state machine with renewal, dunning, and cancel.",
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/fix-esm-extensions.mjs dist",
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
   },
   "peerDependencies": {
-    "@orvacon/paykit": "workspace:^"
+    "@orvacon/dunningkit": ">=0.1.0 <1.0.0",
+    "@orvacon/paykit": ">=0.4.0 <1.0.0"
   },
   "devDependencies": {
+    "@orvacon/dunningkit": "workspace:*",
     "@orvacon/paykit": "workspace:*",
+    "@orvacon/testkit": "workspace:*",
     "@orvacon/tsconfig": "workspace:*",
+    "@types/bun": "1.3.14",
     "typescript": "5.9.2"
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "orvacon",
+    "payments",
+    "subscriptions",
+    "recurring",
+    "billing",
+    "dunning",
+    "typescript"
+  ]
 }

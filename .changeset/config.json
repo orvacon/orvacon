@@ -10,7 +10,6 @@
   "ignore": [
     "@orvacon/connector-paytr",
     "@orvacon/adapter-drizzle",
-    "@orvacon/subkit",
     "@orvacon/uikit",
     "@orvacon/disputekit"
   ],
