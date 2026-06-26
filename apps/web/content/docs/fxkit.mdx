@@ -1,0 +1,39 @@
+---
+title: fxkit
+icon: Coins
+description: Multi-currency display for orvacon Money — never moves custody.
+---
+
+`@orvacon/fxkit` shows a price in the shopper's currency while you still charge in the merchant's. It
+**never moves custody** — it only formats, so it can't change what's authorized. That's why it's a
+plain utility, not a plugin: there's no path from fxkit to a charge.
+
+```bash
+bun add @orvacon/fxkit
+```
+
+```ts
+import { money } from "@orvacon/paykit";
+import { fxkit } from "@orvacon/fxkit";
+
+const fx = fxkit({
+  rates: { rate: (from, to) => myRates.get(from, to) }, // your provider, cache, or table
+  locale: "tr-TR",
+});
+
+await fx.display(money(2999, "TRY"), "EUR"); // "≈ €0.83" — you still charge 29.99 TRY
+```
+
+`rate(from, to)` returns how many `to` units equal one `from` unit (major units), and may be async.
+Decimals follow each currency's real scale via `Intl`, so a `JPY` display has none and a `JPY` base is
+read as whole yen.
+
+<Callout title="Display only, by design">
+There's no `convert`-to-`Money`. Returning a fresh `Money` would invite charging in the converted
+currency — and orvacon never moves custody. fxkit formats; it never produces an amount you can charge.
+</Callout>
+
+<Cards>
+  <Card title="paykit — Money" href="/docs/paykit" description="The Money type fxkit formats." />
+  <Card title="taxkit" href="/docs/taxkit" description="A beforeAuthorize money plugin." />
+</Cards>

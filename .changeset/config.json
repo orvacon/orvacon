@@ -16,7 +16,6 @@
     "@orvacon/vaultkit",
     "@orvacon/dunningkit",
     "@orvacon/invoicekit",
-    "@orvacon/fxkit",
     "@orvacon/disputekit"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
