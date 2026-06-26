@@ -134,6 +134,30 @@
         "typescript": "5.9.2",
       },
     },
+    "packages/disputekit": {
+      "name": "@orvacon/disputekit",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@orvacon/paykit": "workspace:*",
+        "@orvacon/tsconfig": "workspace:*",
+        "typescript": "5.9.2",
+      },
+      "peerDependencies": {
+        "@orvacon/paykit": "workspace:^",
+      },
+    },
+    "packages/dunningkit": {
+      "name": "@orvacon/dunningkit",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@orvacon/paykit": "workspace:*",
+        "@orvacon/tsconfig": "workspace:*",
+        "typescript": "5.9.2",
+      },
+      "peerDependencies": {
+        "@orvacon/paykit": "workspace:^",
+      },
+    },
     "packages/fraudkit": {
       "name": "@orvacon/fraudkit",
       "version": "1.0.0",
@@ -146,9 +170,57 @@
         "@orvacon/paykit": "workspace:^",
       },
     },
+    "packages/fxkit": {
+      "name": "@orvacon/fxkit",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@orvacon/paykit": "workspace:*",
+        "@orvacon/tsconfig": "workspace:*",
+        "typescript": "5.9.2",
+      },
+      "peerDependencies": {
+        "@orvacon/paykit": "workspace:^",
+      },
+    },
+    "packages/invoicekit": {
+      "name": "@orvacon/invoicekit",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@orvacon/paykit": "workspace:*",
+        "@orvacon/tsconfig": "workspace:*",
+        "typescript": "5.9.2",
+      },
+      "peerDependencies": {
+        "@orvacon/paykit": "workspace:^",
+      },
+    },
     "packages/ledgerkit": {
       "name": "@orvacon/ledgerkit",
       "version": "1.0.0",
+      "devDependencies": {
+        "@orvacon/paykit": "workspace:*",
+        "@orvacon/tsconfig": "workspace:*",
+        "typescript": "5.9.2",
+      },
+      "peerDependencies": {
+        "@orvacon/paykit": "workspace:^",
+      },
+    },
+    "packages/metricskit": {
+      "name": "@orvacon/metricskit",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@orvacon/paykit": "workspace:*",
+        "@orvacon/tsconfig": "workspace:*",
+        "typescript": "5.9.2",
+      },
+      "peerDependencies": {
+        "@orvacon/paykit": "workspace:^",
+      },
+    },
+    "packages/notifykit": {
+      "name": "@orvacon/notifykit",
+      "version": "0.0.0",
       "devDependencies": {
         "@orvacon/paykit": "workspace:*",
         "@orvacon/tsconfig": "workspace:*",
@@ -196,7 +268,7 @@
     },
     "packages/testkit": {
       "name": "@orvacon/testkit",
-      "version": "0.0.0",
+      "version": "0.1.0",
       "devDependencies": {
         "@orvacon/paykit": "workspace:*",
         "@orvacon/tsconfig": "workspace:*",
@@ -217,6 +289,18 @@
       "devDependencies": {
         "@orvacon/tsconfig": "workspace:*",
         "typescript": "5.9.2",
+      },
+    },
+    "packages/vaultkit": {
+      "name": "@orvacon/vaultkit",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@orvacon/paykit": "workspace:*",
+        "@orvacon/tsconfig": "workspace:*",
+        "typescript": "5.9.2",
+      },
+      "peerDependencies": {
+        "@orvacon/paykit": "workspace:^",
       },
     },
   },
@@ -484,9 +568,21 @@
 
     "@orvacon/cryptokit": ["@orvacon/cryptokit@workspace:packages/cryptokit"],
 
+    "@orvacon/disputekit": ["@orvacon/disputekit@workspace:packages/disputekit"],
+
+    "@orvacon/dunningkit": ["@orvacon/dunningkit@workspace:packages/dunningkit"],
+
     "@orvacon/fraudkit": ["@orvacon/fraudkit@workspace:packages/fraudkit"],
 
+    "@orvacon/fxkit": ["@orvacon/fxkit@workspace:packages/fxkit"],
+
+    "@orvacon/invoicekit": ["@orvacon/invoicekit@workspace:packages/invoicekit"],
+
     "@orvacon/ledgerkit": ["@orvacon/ledgerkit@workspace:packages/ledgerkit"],
+
+    "@orvacon/metricskit": ["@orvacon/metricskit@workspace:packages/metricskit"],
+
+    "@orvacon/notifykit": ["@orvacon/notifykit@workspace:packages/notifykit"],
 
     "@orvacon/paykit": ["@orvacon/paykit@workspace:packages/paykit"],
 
@@ -499,6 +595,8 @@
     "@orvacon/tsconfig": ["@orvacon/tsconfig@workspace:packages/tsconfig"],
 
     "@orvacon/uikit": ["@orvacon/uikit@workspace:packages/uikit"],
+
+    "@orvacon/vaultkit": ["@orvacon/vaultkit@workspace:packages/vaultkit"],
 
     "@radix-ui/number": ["@radix-ui/number@1.1.2", "", {}, "sha512-ceTwaxc4I5IOi97DgCotl3pqiyRGvffcc0oOsE2dQYaJOFIDsDt4VWG6xEbg1QePv9QWausCEIppud/tJ1wNig=="],
 
