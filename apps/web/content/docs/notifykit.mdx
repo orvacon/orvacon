@@ -1,0 +1,40 @@
+---
+title: notifykit
+icon: Bell
+description: Notify customers on payment lifecycle events — an orvacon plugin.
+---
+
+`@orvacon/notifykit` is a [plugin](/docs/paykit) that calls your `notify` function when a payment is
+**captured**, **refunded**, or **failed** — wire it to email, SMS, Slack, anything. It reacts through
+hooks, so it observes the lifecycle without ever touching the charge.
+
+```bash
+bun add @orvacon/notifykit
+```
+
+```ts
+import { orvacon } from "@orvacon/paykit";
+import { notifykit } from "@orvacon/notifykit";
+
+orvacon({
+  // … database, connectors, webhookSigningKey
+  plugins: [
+    notifykit({
+      notify: (event, payment) => mailer.send(payment.userId, `Your payment was ${event}`),
+    }),
+  ],
+});
+```
+
+`notify(event, payment)` fires after the transition is persisted — `event` is `"captured"`,
+`"refunded"`, or `"failed"`, and `payment` is the stored record (final status, amount, owner).
+
+<Callout>
+Because it runs through orvacon's hooks, a slow or throwing `notify` is reported through `onError` and
+never blocks or breaks the payment flow.
+</Callout>
+
+<Cards>
+  <Card title="paykit — Plugins" href="/docs/paykit" description="The plugin contract notifykit implements." />
+  <Card title="fraudkit" href="/docs/fraudkit" description="A beforeAuthorize veto plugin." />
+</Cards>
