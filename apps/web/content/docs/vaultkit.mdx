@@ -1,0 +1,47 @@
+---
+title: vaultkit
+icon: Wallet
+description: Saved cards on file — vault, re-charge, and forget cards through the gateway, statelessly.
+---
+
+`@orvacon/vaultkit` is the ergonomic layer over orvacon's card vault. The gateway tokenizes the card and
+orvacon returns the token; vaultkit normalizes that into a `CardOnFile` you persist against your own
+customer, hands it back as a charge `PaymentSource`, and deletes it when asked. It keeps no store of its own.
+
+```bash
+bun add @orvacon/vaultkit
+```
+
+```ts
+import { vaultkit } from "@orvacon/vaultkit";
+
+const vault = vaultkit({ orva });
+
+const saved = await vault.save({ card, buyer, customerRef: "cus_42" });
+if (saved.ok) {
+  await myDb.cards.insert(saved.card); // { token, userKey?, brand, last4, label, ... }
+}
+
+// charge it again later
+await orva.authorize({ ...req, source: vault.toSource(saved.card) });
+
+// and forget it
+await vault.forget(saved.card);
+```
+
+`save` returns a discriminated result (`{ ok: true, card } | { ok: false, error }`) — the gateway's error
+passes through, never thrown. `label` renders `"Visa •••• 4242"` (falling back to `"Card •••• 4242"`, then
+`"Saved card"`). `toSource` and `forget` also accept a bare `{ token, userKey? }`, so a row you read back
+from your database works without rebuilding a `CardOnFile`.
+
+<Callout>
+vaultkit holds no store. orvacon never persists card tokens — the same never-hold-state line the core
+draws — so your database stays the single home for which customer owns which card. vaultkit just makes the
+round-trip (vault → persist → charge → forget) ergonomic and PCI-safe: the card number reaches the gateway
+and is gone; only the token and display detail come back.
+</Callout>
+
+<Cards>
+  <Card title="paykit — storeCard" href="/docs/paykit" description="The vault primitive vaultkit wraps." />
+  <Card title="testkit" href="/docs/testkit" description="mockConnector tokenizes cards in-memory for tests." />
+</Cards>
