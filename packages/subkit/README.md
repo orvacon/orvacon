@@ -9,18 +9,17 @@ and every state change comes back for you to persist.
 ## Install
 
 ```bash
-bun add @orvacon/subkit @orvacon/dunningkit
+bun add @orvacon/subkit
 ```
 
 ## Use
 
 ```ts
-import { subkit } from "@orvacon/subkit";
-import { dunningkit, days } from "@orvacon/dunningkit";
+import { subkit, days } from "@orvacon/subkit";
 
 const subs = subkit({
   orva,
-  dunning: dunningkit({ schedule: [days(1), days(3), days(7)] }), // optional
+  retries: [days(1), days(3), days(7)], // optional dunning schedule
 });
 
 // open a subscription (you persist the returned row):

@@ -10,14 +10,13 @@ your cron drives the loop. It holds no money and no store: each charge runs card
 state change comes back for you to persist.
 
 ```bash
-bun add @orvacon/subkit @orvacon/dunningkit
+bun add @orvacon/subkit
 ```
 
 ```ts
-import { subkit } from "@orvacon/subkit";
-import { dunningkit, days } from "@orvacon/dunningkit";
+import { subkit, days } from "@orvacon/subkit";
 
-const subs = subkit({ orva, dunning: dunningkit({ schedule: [days(1), days(3), days(7)] }) });
+const subs = subkit({ orva, retries: [days(1), days(3), days(7)] });
 
 let sub = subs.start({
   id: "sub_42",

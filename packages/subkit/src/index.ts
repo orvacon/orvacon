@@ -1,6 +1,7 @@
-import type { Dunningkit, DunningState } from "@orvacon/dunningkit";
+import { type DunningState, dunningkit } from "@orvacon/dunningkit";
 import {
   type Buyer,
+  type ConnectorErrorCode,
   idempotencyKey,
   type Money,
   type OperationOutcome,
@@ -8,6 +9,7 @@ import {
 } from "@orvacon/paykit";
 
 export type { DunningState } from "@orvacon/dunningkit";
+export { days, hours, minutes } from "@orvacon/dunningkit";
 
 /** How often a subscription renews. Month/year billing clamps to the month end (Jan 31 → Feb 28). */
 export type Interval =
@@ -78,10 +80,13 @@ export interface SubkitOptions {
   /** The orvacon instance that charges the saved card. */
   orva: Pick<Orvacon, "authorize">;
   /**
-   * A dunning policy for failed renewals — build it with `dunningkit({ schedule })`
-   * and inject it here. Omit it and a failed charge cancels the subscription at once.
+   * The dunning retry schedule (ms per retry) for a failed renewal — build it with
+   * the re-exported {@link days} / {@link hours}. Omit it and a failed charge cancels
+   * the subscription at once.
    */
-  dunning?: Dunningkit;
+  retries?: readonly number[];
+  /** Which failure codes a renewal retries; defaults to dunningkit's policy (`declined` + `gateway_error`). */
+  shouldRetry?: (code: ConnectorErrorCode) => boolean;
 }
 
 /** What {@link subkit} returns. */
@@ -134,7 +139,7 @@ function addMonths(date: Date, months: number): Date {
 /**
  * Recurring charges, statelessly. subkit owns the billing state machine — when a
  * subscription is due, charging the saved card, advancing the period, and routing a
- * failed renewal through an injected dunning policy — while your database owns the
+ * failed renewal through a built-in dunning schedule — while your database owns the
  * subscription rows and your cron drives the loop. It never holds money or a store:
  * each charge runs card → your gateway, and every state change comes back to persist.
  *
@@ -143,9 +148,9 @@ function addMonths(date: Date, months: number): Date {
  * changes, metered usage, tax (taxkit), and invoicing (invoicekit) live above it.
  *
  * ```ts
- * import { dunningkit, days } from "@orvacon/dunningkit";
+ * import { subkit, days } from "@orvacon/subkit";
  *
- * const subs = subkit({ orva, dunning: dunningkit({ schedule: [days(1), days(3), days(7)] }) });
+ * const subs = subkit({ orva, retries: [days(1), days(3), days(7)] });
  * let sub = subs.start({ id, amount, card, interval: { unit: "month", count: 1 }, firstChargeAt: now });
  *
  * // your cron:
@@ -156,7 +161,11 @@ function addMonths(date: Date, months: number): Date {
  * ```
  */
 export function subkit(options: SubkitOptions): Subkit {
-  const { orva, dunning } = options;
+  const { orva } = options;
+  const dunning =
+    options.retries && options.retries.length > 0
+      ? dunningkit({ schedule: options.retries, shouldRetry: options.shouldRetry })
+      : undefined;
 
   return {
     start(input) {
