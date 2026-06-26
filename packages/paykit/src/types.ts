@@ -44,6 +44,8 @@ export type OrvaconConfig = {
   connectors: OrvaconConnector[];
   /** Event-keyed lifecycle hooks. */
   hooks?: Hooks;
+  /** Behavior plugins (subkit, taxkit, fraudkit, …), run in array order. See {@link OrvaconPlugin}. */
+  plugins?: OrvaconPlugin[];
   /** Logger. Defaults to a no-op. */
   logger?: Logger;
   /** Catch-all for errors the core could not otherwise surface (e.g. a throwing hook). */
@@ -99,6 +101,43 @@ export type AuthorizeRequest = Idempotent<
     userId?: string;
   }
 >;
+
+/** Per-call context the core hands a plugin. */
+export type PluginContext = {
+  logger: Logger;
+};
+
+/**
+ * What {@link OrvaconPlugin.beforeAuthorize} returns: the (possibly transformed)
+ * request to proceed with, or `{ reject }` to veto the charge before the gateway.
+ */
+export type BeforeAuthorizeResult = AuthorizeRequest | { reject: ConnectorError };
+
+/**
+ * A behavior plugin. Bound via `orvacon({ plugins: [taxkit(), fraudkit()] })`, it
+ * extends the orchestration at two points — without touching the connector or the
+ * application code:
+ *
+ * - `beforeAuthorize` runs before the gateway, in registration order (each plugin
+ *   sees the previous one's transform), and may rewrite the request — e.g. add tax
+ *   to the amount — or veto it — e.g. a fraud block.
+ * - `hooks` react to persisted lifecycle events, merged with the instance's own
+ *   {@link Hooks}. A throwing handler is reported through {@link OrvaconConfig.onError}
+ *   and never breaks the payment flow.
+ *
+ * The core never lets a plugin change the `idempotencyKey` or `connectorId`: those
+ * are fixed from the original request, so a plugin can reshape *what* is charged
+ * but not *where* or the replay identity.
+ */
+export interface OrvaconPlugin {
+  /** Stable identifier, used in logs and errors. */
+  name: string;
+  beforeAuthorize?(
+    ctx: PluginContext,
+    request: AuthorizeRequest,
+  ): BeforeAuthorizeResult | Promise<BeforeAuthorizeResult>;
+  hooks?: Hooks;
+}
 
 /**
  * Application-facing capture request. The gateway reference comes from the
