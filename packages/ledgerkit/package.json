@@ -1,28 +1,44 @@
 {
   "name": "@orvacon/ledgerkit",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Reconciliation and reporting over the orvacon ledger.",
+  "version": "0.0.0",
+  "description": "Export orvacon's hash-chained ledger to CSV / double-entry rows, and verify the chain.",
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/fix-esm-extensions.mjs dist",
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
   },
   "peerDependencies": {
-    "@orvacon/paykit": "workspace:^"
+    "@orvacon/paykit": ">=0.4.0 <1.0.0"
   },
   "devDependencies": {
     "@orvacon/paykit": "workspace:*",
     "@orvacon/tsconfig": "workspace:*",
+    "@types/bun": "1.3.14",
     "typescript": "5.9.2"
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "orvacon",
+    "payments",
+    "ledger",
+    "accounting",
+    "csv",
+    "typescript"
+  ]
 }

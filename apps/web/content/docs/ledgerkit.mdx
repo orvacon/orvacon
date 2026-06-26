@@ -1,0 +1,38 @@
+---
+title: ledgerkit
+icon: Scale
+description: Export orvacon's hash-chained ledger to CSV / double-entry rows, and verify the chain.
+---
+
+`@orvacon/ledgerkit` exports orvacon's ledger to CSV and re-checks the chain. The core already keeps a
+tamper-evident, double-entry, hash-chained ledger — ledgerkit turns a slice of it into something your
+accountant can import, and verifies the links. It's stateless: you fetch the `LedgerEntry` rows, it
+formats and verifies them.
+
+```bash
+bun add @orvacon/ledgerkit
+```
+
+```ts
+import { ledgerkit } from "@orvacon/ledgerkit";
+
+const lk = ledgerkit();
+
+const csv = lk.toCsv(entries); // date,paymentId,account,debit,credit,currency,hash
+const rows = lk.toRows(entries); // the same as structured objects
+const check = lk.verifyChain(entries); // { ok: true } | { ok: false, brokenAt: 4 }
+```
+
+Each entry becomes a double-entry row (exactly one of `debit` / `credit` filled); amounts are plain
+decimal strings in major units (`"24.00"` — machine-parseable, not localized); CSV is RFC 4180.
+
+<Callout>
+ledgerkit doesn't keep its own ledger — the core's hash-chained one is the source of truth. It reads,
+formats, and audits. `verifyChain` checks the `prevHash → hash` links of the slice you pass; the core
+writes that chain inside the same transaction as each state change, so it can't drift from the payment.
+</Callout>
+
+<Cards>
+  <Card title="paykit — The ledger" href="/docs/paykit" description="The hash-chained ledger ledgerkit exports." />
+  <Card title="invoicekit" href="/docs/invoicekit" description="Another document/export kit." />
+</Cards>
