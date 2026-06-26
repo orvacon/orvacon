@@ -8,6 +8,8 @@
     "adapters",
     "cryptokit",
     "cli",
-    "testkit"
+    "testkit",
+    "---Kits---",
+    "taxkit"
   ]
 }

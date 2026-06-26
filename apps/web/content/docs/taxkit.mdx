@@ -1,0 +1,36 @@
+---
+title: taxkit
+icon: Percent
+description: Add tax (VAT / KDV) to every authorize — an orvacon plugin.
+---
+
+`@orvacon/taxkit` is a [plugin](/docs/paykit) that adds tax on top of every authorized amount before
+the gateway sees it — your application code keeps passing the pre-tax amount.
+
+```bash
+bun add @orvacon/taxkit
+```
+
+```ts
+import { orvacon } from "@orvacon/paykit";
+import { taxkit } from "@orvacon/taxkit";
+
+orvacon({
+  // … database, connectors, webhookSigningKey
+  plugins: [taxkit({ rate: 0.2 })], // +20% on every authorize
+});
+```
+
+It's **tax-exclusive**: the request `amount` is the pre-tax base, and `rate × amount` — rounded to
+whole minor units — is added in `beforeAuthorize`. So a `money(1000, "TRY")` charge at `rate: 0.18`
+authorizes `money(1180, "TRY")`. The rate is validated fail-fast at setup.
+
+<Callout>
+Because taxkit runs in `beforeAuthorize`, the tax lands in the amount that's authorized, captured,
+refunded, and ledgered — there's no separate tax line to reconcile later.
+</Callout>
+
+<Cards>
+  <Card title="paykit — Plugins" href="/docs/paykit" description="The plugin contract taxkit implements." />
+  <Card title="testkit" href="/docs/testkit" description="Drive a taxed flow in a test." />
+</Cards>
