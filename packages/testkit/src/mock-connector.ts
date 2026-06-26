@@ -11,12 +11,16 @@ import type {
   OrvaconConnector,
   PaymentSource,
   RawWebhook,
+  ReconcileOutcome,
   RefundInput,
+  RetrievePaymentInput,
+  SetupResult,
   StoreCardInput,
   StoreCardResult,
 } from "@orvacon/paykit";
 import { decodeMockWebhook } from "./callback";
 import { type MockOutcome, outcomeForNumber } from "./cards";
+import { reconcilePending } from "./reconcile";
 
 const DEFAULT_CAPABILITIES = {
   signatureEncoding: "base64",
@@ -35,6 +39,12 @@ export interface MockConnectorOptions {
   id?: string;
   /** Override any capability — e.g. `{ autoCapture: true }` to capture at authorize. */
   capabilities?: Partial<ConnectorCapabilities>;
+  /**
+   * What `retrievePayment` returns, driving `orva.reconcile()`. Default: still
+   * pending (a no-op). Return {@link mockReconcile} to settle a payment the
+   * gateway already captured.
+   */
+  reconcile?: (input: RetrievePaymentInput) => ReconcileOutcome;
 }
 
 function outcomeFor(source: PaymentSource): MockOutcome {
@@ -125,6 +135,17 @@ export function mockConnector(options: MockConnectorOptions = {}): OrvaconConnec
     },
 
     async deleteCard(_ctx: ConnectorContext, _input: DeleteCardInput): Promise<DeleteCardResult> {
+      return { ok: true };
+    },
+
+    async retrievePayment(
+      _ctx: ConnectorContext,
+      input: RetrievePaymentInput,
+    ): Promise<ReconcileOutcome> {
+      return options.reconcile ? options.reconcile(input) : reconcilePending();
+    },
+
+    async verifySetup(_ctx: ConnectorContext): Promise<SetupResult> {
       return { ok: true };
     },
   };
