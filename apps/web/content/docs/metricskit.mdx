@@ -1,0 +1,38 @@
+---
+title: metricskit
+icon: Activity
+description: Emit payment metrics to your observability sink — an orvacon plugin.
+---
+
+`@orvacon/metricskit` is a [plugin](/docs/paykit) that increments a counter on every payment lifecycle
+event, tagged with the currency and connector — so you get success / failure / refund rates and volume
+by gateway in your existing dashboards.
+
+```bash
+bun add @orvacon/metricskit
+```
+
+```ts
+import { orvacon } from "@orvacon/paykit";
+import { metricskit } from "@orvacon/metricskit";
+
+orvacon({
+  // … database, connectors, webhookSigningKey
+  plugins: [metricskit({ sink: { inc: (name, tags) => prometheus.inc(name, tags) } })],
+});
+// → orvacon.payment.captured{currency="TRY",connector="iyzico"}
+```
+
+The `sink` is a single `inc(name, tags?)` — wrap Prometheus, StatsD, OpenTelemetry, or your own
+counter. It counts `authorized`, `captured`, `refunded`, `failed`, and `voided`; `prefix` renames the
+namespace (default `"orvacon"`).
+
+<Callout>
+Counts only — derive revenue from your own payment records. metricskit reacts through hooks, so a slow
+or throwing `sink` is reported through `onError` and never blocks the payment.
+</Callout>
+
+<Cards>
+  <Card title="notifykit" href="/docs/notifykit" description="The other hooks-based plugin." />
+  <Card title="paykit — Plugins" href="/docs/paykit" description="The plugin contract metricskit implements." />
+</Cards>

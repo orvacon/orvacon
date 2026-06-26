@@ -12,6 +12,7 @@
     "---Kits---",
     "taxkit",
     "fraudkit",
-    "notifykit"
+    "notifykit",
+    "metricskit"
   ]
 }

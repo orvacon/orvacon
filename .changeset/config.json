@@ -13,7 +13,6 @@
     "@orvacon/subkit",
     "@orvacon/ledgerkit",
     "@orvacon/uikit",
-    "@orvacon/metricskit",
     "@orvacon/vaultkit",
     "@orvacon/dunningkit",
     "@orvacon/invoicekit",
