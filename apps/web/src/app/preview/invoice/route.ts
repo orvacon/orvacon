@@ -36,9 +36,11 @@ export function GET(): Response {
       gatewayReference: "iyzico_abc123",
       createdAt: "2026-06-01T13:24:00.000Z",
     },
-    documentType: "e-Arşiv Fatura",
+    // The buyer is a registered taxpayer (VKN + vergi dairesi) → e-Fatura, not e-Arşiv.
+    documentType: "e-Fatura",
     number: "ACM2026000000042",
     ettn: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    amountInWords: "İkibindörtyüz Türk Lirası",
     buyer: {
       name: "Lovelace Danışmanlık Ltd. Şti.",
       taxId: "9876543210",
@@ -50,6 +52,7 @@ export function GET(): Response {
       {
         description: "orvacon Pro — yıllık abonelik",
         quantity: 1,
+        unit: "Yıl",
         unitPrice: money(200_000, "TRY"),
       },
     ],

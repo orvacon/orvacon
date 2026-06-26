@@ -30,12 +30,23 @@ describe("invoicekit", () => {
     expect(html).toContain("9876543210"); // buyer VKN
   });
 
-  test("breaks out the tax — subtotal, tax line, and total with the ISO code", () => {
+  test("breaks out the tax — subtotal, tax line, and total", () => {
     const html = invoicer.render(sample);
     expect(html).toContain("KDV %20");
     expect(html).toContain("4.00"); // KDV = 20.00 × 0.20
     expect(html).toContain("24.00"); // total = 24.00
-    expect(html).toContain("TRY"); // ISO code on the grand total
+    expect(html).toContain("₺"); // money shown with one consistent symbol
+  });
+
+  test("shows the line unit and the amount in words; never the payment reference", () => {
+    const html = invoicer.render({
+      ...sample,
+      lines: [{ description: "Seat", quantity: 2, unit: "Adet", unitPrice: money(1_000, "TRY") }],
+      amountInWords: "Yirmi dört Türk Lirası",
+    });
+    expect(html).toContain("Adet");
+    expect(html).toContain("Yirmi dört Türk Lirası");
+    expect(html).not.toContain("gw_abc"); // gatewayReference stays off the document
   });
 
   test("computes each line total as unit × quantity", () => {
