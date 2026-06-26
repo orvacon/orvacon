@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@orvacon/invoicekit": "workspace:*",
+    "@orvacon/paykit": "workspace:*",
     "fumadocs-core": "16.10.5",
     "fumadocs-mdx": "15.0.12",
     "fumadocs-ui": "16.10.5",
