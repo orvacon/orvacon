@@ -1,0 +1,36 @@
+{
+  "name": "@orvacon/ui-library",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun run registry && next dev",
+    "build": "bun run registry:serve && bun run registry && next build",
+    "start": "next start",
+    "check-types": "bun run registry && tsc --noEmit",
+    "registry": "bun scripts/build-registry.ts",
+    "registry:serve": "orvacon registry build registry.json --output public/r"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.460.0",
+    "next": "16.2.9",
+    "next-themes": "^0.4.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "shiki": "4.3.0",
+    "tailwind-merge": "^3.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "orvacon": "workspace:*",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "ignoreScripts": ["sharp", "unrs-resolver"],
+  "trustedDependencies": ["sharp", "unrs-resolver"]
+}

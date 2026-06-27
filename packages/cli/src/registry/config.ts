@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const DEFAULT_REGISTRY_URL = "https://orvacon.com/r/{name}.json";
+const DEFAULT_REGISTRY_URL = "https://ui.orvacon.com/r/{name}.json";
 
 /** Resolved consumer configuration for `add`. */
 export interface AddConfig {
