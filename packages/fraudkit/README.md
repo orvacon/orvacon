@@ -3,6 +3,8 @@
 Veto risky authorizes with simple rules — an [orvacon](https://orvacon.com) plugin. Rules are checked
 before the gateway; the first match rejects the charge and no payment is created.
 
+**Plugin kit.** Binds via `plugins: []` — vetoes the charge.
+
 ## Install
 
 ```bash

@@ -4,6 +4,8 @@ Emit payment metrics to your observability sink — an [orvacon](https://orvacon
 increments a counter on every lifecycle event, tagged with the currency and connector, so you get
 success / failure / refund rates and volume by gateway in your existing dashboards.
 
+**Plugin kit.** Binds via `plugins: []` — lifecycle hooks.
+
 ## Install
 
 ```bash

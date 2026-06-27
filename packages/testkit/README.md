@@ -4,6 +4,8 @@ Drive [orvacon](https://orvacon.com) payment flows in a unit test — **no gatew
 
 The mock connector and database productize orvacon's own proven test doubles, so a test exercises the real orchestrator rather than a stand-in.
 
+**Tool.** Imported in your tests; it binds nowhere.
+
 ## Install
 
 ```bash

@@ -3,6 +3,8 @@
 Notify customers on payment lifecycle events — an [orvacon](https://orvacon.com) plugin. It reacts to
 captures, refunds, and failures without ever touching the charge.
 
+**Plugin kit.** Binds via `plugins: []` — lifecycle hooks.
+
 ## Install
 
 ```bash

@@ -3,6 +3,8 @@
 Show a price in the shopper's currency while you still charge in the merchant's. fxkit **never moves
 custody** — it only formats, so it can't change what's authorized.
 
+**Stateless kit.** Standalone — call it directly.
+
 ## Install
 
 ```bash

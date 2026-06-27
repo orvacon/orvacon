@@ -4,6 +4,8 @@ Add tax (VAT / KDV) to every authorize — an [orvacon](https://orvacon.com) plu
 code calls `orva.authorize(...)` with the pre-tax amount; taxkit adds the tax before the gateway sees
 it.
 
+**Plugin kit.** Binds via `plugins: []` — transforms the charge.
+
 ## Install
 
 ```bash
