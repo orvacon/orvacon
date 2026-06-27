@@ -23,11 +23,14 @@ export interface AddResult {
 }
 
 /**
- * Turn a registry reference into a fetch URL, or `null` for a bare name. A bare
- * name (`button`) is a shadcn base component orvacon doesn't serve; `@ns/name`
- * resolves through the configured registries; a full URL is fetched directly.
+ * Turn a registry reference into a fetch URL, or `null` for a bare shadcn base
+ * component. A full URL is fetched directly; `@ns/name` resolves through the
+ * configured registries; a bare top-level name (`payment-status`) is an orvacon
+ * component resolved against the default registry, while a bare name nested in a
+ * component's `registryDependencies` (`button`) is a shadcn base orvacon doesn't
+ * serve — left for the user to add with shadcn.
  */
-function urlFor(ref: string, registries: Record<string, string>): string | null {
+function urlFor(ref: string, registries: Record<string, string>, topLevel: boolean): string | null {
   if (/^https?:\/\//i.test(ref)) {
     return ref;
   }
@@ -44,6 +47,9 @@ function urlFor(ref: string, registries: Record<string, string>): string | null 
       );
     }
     return template.replace("{name}", ref.slice(slash + 1));
+  }
+  if (topLevel) {
+    return registries["@orvacon"]?.replace("{name}", ref) ?? null;
   }
   return null;
 }
@@ -73,13 +79,14 @@ async function resolveTree(
   registries: Record<string, string>,
   seen: Set<string>,
   tree: Tree,
+  topLevel: boolean,
 ): Promise<Tree> {
   for (const ref of refs) {
     if (seen.has(ref)) {
       continue;
     }
     seen.add(ref);
-    const url = urlFor(ref, registries);
+    const url = urlFor(ref, registries, topLevel);
     if (url === null) {
       tree.shadcn.push(ref);
       continue;
@@ -88,7 +95,7 @@ async function resolveTree(
     tree.items.push(item);
     tree.npm.push(...(item.dependencies ?? []));
     if (item.registryDependencies?.length) {
-      await resolveTree(item.registryDependencies, registries, seen, tree);
+      await resolveTree(item.registryDependencies, registries, seen, tree, false);
     }
   }
   return tree;
@@ -143,11 +150,13 @@ export async function addComponents(
   options: AddOptions,
 ): Promise<AddResult> {
   const config = await loadConfig(options.cwd, options.path);
-  const tree = await resolveTree(refs, config.registries, new Set(), {
-    items: [],
-    npm: [],
-    shadcn: [],
-  });
+  const tree = await resolveTree(
+    refs,
+    config.registries,
+    new Set(),
+    { items: [], npm: [], shadcn: [] },
+    true,
+  );
   if (tree.items.length === 0) {
     throw new Error("orvacon add: nothing to add");
   }

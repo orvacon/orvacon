@@ -101,6 +101,27 @@ describe("orvacon add", () => {
     await rm(project, { recursive: true, force: true });
   });
 
+  test("resolves a bare top-level name against the default orvacon registry", async () => {
+    const project = await tempDir();
+    let fetched = "";
+    mockFetch(
+      {
+        name: "payment-status",
+        type: "registry:ui",
+        files: [{ path: "payment-status.tsx", type: "registry:ui", content: "ok" }],
+      },
+      (url) => {
+        fetched = url;
+      },
+    );
+
+    const result = await addComponents(["payment-status"], { cwd: project, noInstall: true });
+    expect(fetched).toContain("/r/payment-status.json");
+    expect(result.written).toHaveLength(1);
+
+    await rm(project, { recursive: true, force: true });
+  });
+
   test("fetches a full URL ref directly", async () => {
     const project = await tempDir();
     let fetched = "";
