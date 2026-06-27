@@ -22,7 +22,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@orvacon/dunningkit": "workspace:^"
+    "@orvacon/dunningkit": ">=0.0.0 <1.0.0"
   },
   "peerDependencies": {
     "@orvacon/paykit": ">=0.4.0 <1.0.0"
