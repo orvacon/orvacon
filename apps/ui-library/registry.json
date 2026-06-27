@@ -1,0 +1,29 @@
+{
+  "name": "orvacon-ui",
+  "homepage": "https://orvacon.com",
+  "items": [
+    {
+      "name": "utils",
+      "type": "registry:lib",
+      "title": "cn helper",
+      "description": "The class-name merge helper every orvacon ui component imports.",
+      "dependencies": ["clsx", "tailwind-merge"],
+      "files": [{ "path": "src/lib/utils.ts", "type": "registry:lib", "target": "@/lib/utils.ts" }]
+    },
+    {
+      "name": "payment-status",
+      "type": "registry:ui",
+      "title": "Payment Status",
+      "description": "A badge for a payment's lifecycle state, matching orvacon's core state machine.",
+      "dependencies": ["class-variance-authority"],
+      "registryDependencies": ["@orvacon/utils"],
+      "files": [
+        {
+          "path": "src/registry/ui/payment-status.tsx",
+          "type": "registry:ui",
+          "target": "@/components/orvacon/payment-status.tsx"
+        }
+      ]
+    }
+  ]
+}
