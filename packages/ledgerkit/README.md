@@ -5,6 +5,8 @@ chain. The core already keeps a tamper-evident double-entry ledger; ledgerkit tu
 something your accountant can import, and re-checks the links. It's stateless — you fetch the entries,
 it formats and verifies.
 
+**Stateless kit.** Standalone — call it directly.
+
 ## Install
 
 ```bash

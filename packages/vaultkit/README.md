@@ -5,6 +5,8 @@ token; vaultkit normalizes that into a `CardOnFile` you persist against your own
 a charge `PaymentSource`, and deletes it when asked. It keeps no store of its own — your database stays the
 single home for which customer owns which card.
 
+**Service kit.** Wraps `orva`.
+
 ## Install
 
 ```bash

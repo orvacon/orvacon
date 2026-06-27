@@ -5,6 +5,8 @@ self-contained file (inline styles, no external assets) you can email, attach, o
 carries the fields a tax invoice needs: a tax breakdown, both parties' tax id and tax office, units,
 and an amount in words.
 
+**Stateless kit.** Standalone — call it directly.
+
 ## Install
 
 ```bash

@@ -4,6 +4,8 @@ Recover a failed payment with a scheduled, backed-off retry policy — a statele
 [orvacon](https://orvacon.com). It performs no charge and keeps no store: your cron re-runs the charge and
 persists the state; dunningkit owns only the policy — when to retry, when to give up.
 
+**Stateless kit.** Standalone — call it directly.
+
 ## Install
 
 ```bash

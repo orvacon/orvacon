@@ -6,6 +6,8 @@ calendar-correct interval math, and routing a failed renewal through dunning —
 rows and your cron drives the loop. It never holds money or a store: each charge runs card → your gateway,
 and every state change comes back for you to persist.
 
+**Service kit.** Wraps `orva`.
+
 ## Install
 
 ```bash
