@@ -4,6 +4,8 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { supabaseSchema } from "@orvacon/adapter-supabase";
 import { generateSigningKeyPair } from "@orvacon/cryptokit";
+import { addComponents } from "./registry/add";
+import { buildRegistry } from "./registry/build";
 
 const VERSION = "0.0.1";
 
@@ -13,8 +15,10 @@ Usage
   orvacon <command> [options]
 
 Commands
+  add <name...>   add orvacon UI components to your project from the registry
   generate        print the database schema + default-deny RLS migration (--write to save it)
   keys            generate an Ed25519 webhook signing key pair
+  registry build  build the uikit registry — inline component sources into servable JSON
 
 Options
   -v, --version   print the version
@@ -117,6 +121,74 @@ async function runKeys(): Promise<number> {
   return 0;
 }
 
+async function runAdd(args: string[]): Promise<number> {
+  const refs: string[] = [];
+  let pathOverride: string | undefined;
+  let noInstall = false;
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index];
+    if (arg === "--path" || arg === "-p") {
+      index++;
+      pathOverride = args[index];
+    } else if (arg === "--no-install") {
+      noInstall = true;
+    } else if (arg && !arg.startsWith("-")) {
+      refs.push(arg);
+    }
+  }
+
+  if (refs.length === 0) {
+    process.stderr.write("orvacon add: name a component, e.g. orvacon add payment-status\n");
+    return 1;
+  }
+
+  const result = await addComponents(refs, {
+    cwd: process.cwd(),
+    path: pathOverride,
+    noInstall,
+  });
+  process.stderr.write(
+    `Added ${result.written.length} file(s):\n${result.written.map((file) => `  ${file}`).join("\n")}\n`,
+  );
+  if (result.shadcnDependencies.length > 0) {
+    process.stderr.write(
+      `\nThese shadcn base components are also required:\n  npx shadcn@latest add ${result.shadcnDependencies.join(" ")}\n`,
+    );
+  }
+  return 0;
+}
+
+async function runRegistry(args: string[]): Promise<number> {
+  if (args[0] !== "build") {
+    process.stderr.write(
+      `Unknown subcommand: registry ${args[0] ?? ""}\n` +
+        "Run: orvacon registry build [registry.json] [--output <dir>]\n",
+    );
+    return 1;
+  }
+
+  const rest = args.slice(1);
+  const first = rest[0];
+  const registryFile = first && !first.startsWith("-") ? first : "registry.json";
+
+  let outDir = "public/r";
+  const outFlag = rest.findIndex((arg) => arg === "--output" || arg === "-o");
+  if (outFlag >= 0) {
+    const value = rest[outFlag + 1];
+    if (!value) {
+      process.stderr.write("orvacon registry build: --output needs a directory\n");
+      return 1;
+    }
+    outDir = value;
+  }
+
+  const { items } = await buildRegistry({ registryFile, outDir });
+  process.stderr.write(
+    `Built ${items.length} registry item(s) -> ${outDir}\n${items.map((name) => `  ${name}`).join("\n")}\n`,
+  );
+  return 0;
+}
+
 async function main(args: string[]): Promise<number> {
   const arg = args[0];
 
@@ -136,6 +208,14 @@ async function main(args: string[]): Promise<number> {
       return 1;
     }
     return runKeys();
+  }
+
+  if (arg === "add") {
+    return runAdd(args.slice(1));
+  }
+
+  if (arg === "registry") {
+    return runRegistry(args.slice(1));
   }
 
   if (!arg || arg === "-h" || arg === "--help") {
