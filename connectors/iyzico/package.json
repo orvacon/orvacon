@@ -4,6 +4,7 @@
   "description": "Iyzico gateway connector for orvacon.",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -21,6 +22,22 @@
     "check-types": "tsc --noEmit",
     "test": "bun test"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orvacon/orvacon.git",
+    "directory": "connectors/iyzico"
+  },
+  "homepage": "https://orvacon.com",
+  "keywords": [
+    "orvacon",
+    "payments",
+    "payment-orchestration",
+    "typescript",
+    "iyzico"
+  ],
   "dependencies": {
     "@orvacon/cryptokit": "^0.1.1"
   },
@@ -32,15 +49,5 @@
     "@orvacon/tsconfig": "workspace:*",
     "@types/bun": "1.3.14",
     "typescript": "5.9.2"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "keywords": [
-    "orvacon",
-    "payments",
-    "payment-orchestration",
-    "typescript",
-    "iyzico"
-  ]
+  }
 }

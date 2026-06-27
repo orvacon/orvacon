@@ -4,6 +4,7 @@
   "description": "Next.js App Router adapter for orvacon — the gateway callback route handler, with after()-drained signed-webhook delivery.",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -13,10 +14,29 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node ../../scripts/fix-esm-extensions.mjs dist",
     "check-types": "tsc --noEmit"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orvacon/orvacon.git",
+    "directory": "adapters/nextjs"
+  },
+  "homepage": "https://orvacon.com",
+  "keywords": [
+    "orvacon",
+    "payments",
+    "payment-orchestration",
+    "typescript",
+    "iyzico"
+  ],
   "peerDependencies": {
     "@orvacon/paykit": ">=0.1.1 <1.0.0",
     "next": ">=15"
@@ -26,15 +46,5 @@
     "@orvacon/tsconfig": "workspace:*",
     "next": "16.2.9",
     "typescript": "5.9.2"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "keywords": [
-    "orvacon",
-    "payments",
-    "payment-orchestration",
-    "typescript",
-    "iyzico"
-  ]
+  }
 }

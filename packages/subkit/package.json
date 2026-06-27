@@ -4,6 +4,7 @@
   "description": "Recurring charges for orvacon — a stateless subscription state machine with renewal, dunning, and cancel.",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -21,6 +22,24 @@
     "check-types": "tsc --noEmit",
     "test": "bun test"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orvacon/orvacon.git",
+    "directory": "packages/subkit"
+  },
+  "homepage": "https://orvacon.com",
+  "keywords": [
+    "orvacon",
+    "payments",
+    "subscriptions",
+    "recurring",
+    "billing",
+    "dunning",
+    "typescript"
+  ],
   "dependencies": {
     "@orvacon/dunningkit": ">=0.0.0 <1.0.0"
   },
@@ -33,17 +52,5 @@
     "@orvacon/tsconfig": "workspace:*",
     "@types/bun": "1.3.14",
     "typescript": "5.9.2"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "keywords": [
-    "orvacon",
-    "payments",
-    "subscriptions",
-    "recurring",
-    "billing",
-    "dunning",
-    "typescript"
-  ]
+  }
 }
