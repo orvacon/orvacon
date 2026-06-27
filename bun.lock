@@ -258,7 +258,7 @@
       "name": "@orvacon/subkit",
       "version": "0.0.0",
       "dependencies": {
-        "@orvacon/dunningkit": "workspace:^",
+        "@orvacon/dunningkit": ">=0.0.0 <1.0.0",
       },
       "devDependencies": {
         "@orvacon/paykit": "workspace:*",
