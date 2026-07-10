@@ -41,8 +41,8 @@
     "@orvacon/adapter-supabase": "workspace:*",
     "@orvacon/cryptokit": "workspace:*",
     "@types/bun": "1.3.14",
-    "@types/node": "^22.10.0",
-    "commander": "^12.1.0",
-    "typescript": "5.9.2"
+    "@types/node": "^26.1.0",
+    "commander": "^15.0.0",
+    "typescript": "6.0.3"
   }
 }
