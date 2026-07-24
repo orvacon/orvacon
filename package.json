@@ -14,11 +14,11 @@
     "release": "turbo run build && changeset publish"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.16",
-    "@changesets/cli": "2.31.0",
+    "@biomejs/biome": "2.5.4",
+    "@changesets/cli": "2.31.1",
     "@turbo/gen": "^2.9.17",
     "turbo": "^2.9.17",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   },
   "engines": {
     "node": ">=20"
