@@ -44,7 +44,7 @@
   "devDependencies": {
     "@orvacon/paykit": "workspace:*",
     "@orvacon/tsconfig": "workspace:*",
-    "next": "16.2.9",
+    "next": "16.2.11",
     "typescript": "5.9.2"
   }
 }
