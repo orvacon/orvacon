@@ -47,7 +47,7 @@
     "@orvacon/paykit": "workspace:*",
     "@orvacon/testkit": "workspace:*",
     "@orvacon/tsconfig": "workspace:*",
-    "@types/bun": "1.3.14",
-    "typescript": "5.9.2"
+    "@types/bun": "1.4.0",
+    "typescript": "7.0.2"
   }
 }
