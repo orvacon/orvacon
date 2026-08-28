@@ -21,7 +21,7 @@
   "devDependencies": {
     "@orvacon/paykit": "workspace:*",
     "@orvacon/tsconfig": "workspace:*",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   },
   "publishConfig": {
     "access": "public"
